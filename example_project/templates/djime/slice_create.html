@@ -1,0 +1,75 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{{ slip.name }}{% endblock %}
+
+{% block extra_head %}
+  <link type="text/css" rel="stylesheet" media="all" href="{{ DEMO_STATIC_URL }}jquery.ui-1.6rc6/themes/redmond/ui.all.css" />
+  <link type="text/css" rel="stylesheet" media="all" href="{{ STATIC_URL }}css/tracker.css" />
+{% endblock %}
+
+{% block content %}
+  <div id="block-text" class="block">
+    <div class="content">
+      <div id="dialog-box"></div>
+      <h2 class="title">
+        <div class="edit" id="div-1">{{ slip.name }}</div>
+      </h2>
+      <div class="inner">
+        <div id="time_slice_form">
+            {% trans "Add a new time slice" %}
+            <form class="form" moethod="POST" action="{% url slice_create slip.id%}">
+                {{ time_slice_add_form }}
+                <input type="submit" name="create" Value="{% trans "Create" %}">
+            </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block sidebar %}
+  <div class="block">
+    <input type="button" name="delete-slip" id="delete-slip-button" value="Delete this slip" />
+  </div>
+  {% if slip_change_form %}
+  <div class="block">
+    <h3>{% trans "Update the task" %}</h3>
+    <form class="form" method="post" action="{% url slip_page slip.id %}">
+      {{ slip_change_form.errors }}
+      <ul class="form-items">
+        <div class="group">
+          {{ slip_change_form.project.errors }}
+          <label for="id_project">Project:</label>
+          {{ slip_change_form.project }}
+        </div>
+        <div class="group">
+          {{ slip_change_form.client.errors }}
+          <label for="id_client">Client:</label>
+          {{ slip_change_form.client }}
+        </div>
+        <input type="submit" value="Update task" />
+      </ul>
+    </form>
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block closure %}
+  {% if not timer %}
+  <script type="text/javascript" src="{{ STATIC_URL }}js/timer.js"></script>
+  <script type="text/javascript" src="{{ DEMO_STATIC_URL }}js/jquery.timeclock.js"></script>
+  {% endif %}
+  <script type="text/javascript" src="{{ STATIC_URL }}js/tracker.js"></script>
+  <script type="text/javascript" src="{{ DEMO_STATIC_URL }}js/jquery.jeditable.js"></script>
+  <script type="text/javascript" src="{{ DEMO_STATIC_URL }}jquery.ui-1.6rc6/ui/jquery.ui.all.js"></script>
+  <script type="text/javascript" src="{{ DEMO_STATIC_URL }}js/jquery.autocomplete.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}js/djime.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}js/form.js"></script>
+  <script type="text/javascript">
+    djime.messages['slip_delete_title'] = '{% trans "Delete this slip?" %}';
+    djime.messages['slip_delete_body'] = '{% trans "If you delete this slip, you will lose all the time records associated with it. This is irrevocable." %}';
+  </script>
+{% endblock %}
+
