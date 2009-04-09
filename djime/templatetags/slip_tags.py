@@ -1,5 +1,10 @@
+import datetime
+
 from django import template
+from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _
+
+from djime.forms import TimeSliceForm
 
 register = template.Library()
 
@@ -10,7 +15,7 @@ def do_get_time_slice(parser, token):
     bits = token.contents.split()
     
     if len(bits) not in (2,4):
-        raise template.TemplateSyntaxError( _("%(tag_name)r tag takes 1 or 3 arguments. {% %(tag_name)r slip [ as context_var] %}"))
+        raise template.TemplateSyntaxError( _("%(tag_name)r tag takes 1 or 3 arguments. {% %(tag_name)r slip [ as context_var] %}") % {'tag_name' : 'get_time_slices'})
 
     context_name = None
     if len(bits) == 4:
@@ -32,4 +37,28 @@ class GetTimeSlicesNode(template.Node):
         context[self.get_context_name( context )] = self.slip.resolve( context ).timeslice_set.all()
         return ''
 
+def do_get_time_slice_form(parser, token):
+    """
+    retrieve all time slices to a slip and add them to the context.
+    """
+    bits = token.contents.split()
+    
+    if len(bits) not in (1,):
+        raise template.TemplateSyntaxError( _("%(tag_name)r tag takes no arguments. {% %(tag_name)r %}")% {'tag_name' : 'get_time_slice_form'})
+
+    return GetTimeSliceFormNode()
+
+class GetTimeSliceFormNode(template.Node):
+    
+    def render(self, context):
+        template_search_list = [
+            "djime/time_slice_form.html",
+        ]
+        context.push()
+        formstr = render_to_string(template_search_list, {"form" : TimeSliceForm(initial={'begin': datetime.datetime.now(), 'end': datetime.datetime.now()})}, context)
+        context.pop()
+        return formstr
+
+
 register.tag('get_time_slices', do_get_time_slice)
+register.tag('get_time_slice_form', do_get_time_slice_form)

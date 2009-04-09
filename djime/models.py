@@ -57,9 +57,9 @@ class TimeSlice(models.Model):
 
     def __unicode__(self):
         if self.end:
-            return _('From %(begin)s to %(end)s') % {'begin': self.begin, 'end': self.end}
+            return _('From %(begin)s to %(end)s') % {'begin': self.begin.strftime('%Y-%m-%d %H:%M:%S'), 'end': self.end.strftime('%Y-%m-%d %H:%M:%S')}
         else:
-            return _('From %(begin)s') % {'begin': self.begin}
+            return _('From %(begin)s') % {'begin': self.begin.strftime('%Y-%m-%d %H:%m:%S')}
 
 class DataImport(models.Model):
     user = models.ForeignKey(User, verbose_name=_('user'))

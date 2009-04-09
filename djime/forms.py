@@ -1,7 +1,7 @@
 from django import forms
 from django.db import models
 from django.utils.translation import ugettext as _
-from djime.models import Slip
+from djime.models import Slip, TimeSlice
 from project.models import Project
 
 
@@ -46,3 +46,11 @@ class SlipChangeForm(forms.ModelForm):
     class Meta:
         model = Slip
         fields = ('client', 'project')
+
+class TimeSliceForm(forms.ModelForm):
+    begin = forms.DateTimeField(widget=forms.SplitDateTimeWidget())
+    end   = forms.DateTimeField(widget=forms.SplitDateTimeWidget())
+
+    class Meta:
+        model = TimeSlice
+        fields = ('begin', 'end')

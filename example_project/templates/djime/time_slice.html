@@ -10,9 +10,6 @@
 {% endblock %}
 
 {% block content %}
-    {% load slip_tags %}
-    {% get_time_slices slip %}
-
   <div id="block-text" class="block">
     <div class="content">
       <div id="dialog-box"></div>
@@ -26,17 +23,10 @@
         <div id="slip-timer-button" class="{{ timer_class }} {{ slip.id }}"><div class="timeclock">0:00</div></div>
         <div id="time_slices">
             
-                <p>
-                    <ul>
-                        {% for time_slice in time_slices %}
-                            <li> <a href="{% url time_slice_page time_slice.slip.id time_slice.id %}">{{ time_slice }}</a>
-                        {% endfor %}
-                    </ul>
-                </p>
-                <h3>{% trans "Add a new time slice" %}</h3>
-                <form class="form" method="POST" action="{% url time_slice_create slip.id%}">
-                {% get_time_slice_form %}
-                <input type="submit" name="create" Value="{% trans "Create" %}">
+            <form class="form" method="POST" action="{% url time_slice_page slip.id time_slice.id %}">
+                <h3>{% trans "Edit time slice" %}</h3>
+                {{ time_slice_change_form }}
+                <input type="submit" name="save" Value="{% trans "Save" %}">
             </form>
         </div>
       </div>
@@ -46,29 +36,8 @@
 
 {% block sidebar %}
   <div class="block">
-    <input type="button" name="delete-slip" id="delete-slip-button" value="Delete this slip" />
+    <input type="button" name="delete-slice" id="delete-slice-button" value="Delete this slice" />
   </div>
-  {% if slip_change_form %}
-  <div class="block">
-    <h3>{% trans "Update the task" %}</h3>
-    <form class="form" method="post" action="{% url slip_page slip.id %}">
-      {{ slip_change_form.errors }}
-      <ul class="form-items">
-        <div class="group">
-          {{ slip_change_form.project.errors }}
-          <label for="id_project">Project:</label>
-          {{ slip_change_form.project }}
-        </div>
-        <div class="group">
-          {{ slip_change_form.client.errors }}
-          <label for="id_client">Client:</label>
-          {{ slip_change_form.client }}
-        </div>
-        <input type="submit" value="Update task" />
-      </ul>
-    </form>
-  </div>
-  {% endif %}
 {% endblock %}
 
 {% block closure %}
