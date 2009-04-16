@@ -55,7 +55,7 @@ class GetTimeSliceFormNode(template.Node):
             "djime/time_slice_form.html",
         ]
         context.push()
-        formstr = render_to_string(template_search_list, {"form" : TimeSliceForm(initial={'begin': datetime.datetime.now(), 'end': datetime.datetime.now()})}, context)
+        formstr = render_to_string(template_search_list, {"form" : TimeSliceForm(initial={'date': datetime.datetime.now()})}, context)
         context.pop()
         return formstr
 

@@ -55,6 +55,11 @@
       {{ slip_change_form.errors }}
       <ul class="form-items">
         <div class="group">
+          {{ slip_change_form.name.errors }}
+          <label for="id_project">Name:</label>
+          {{ slip_change_form.name }}
+        </div>
+        <div class="group">
           {{ slip_change_form.project.errors }}
           <label for="id_project">Project:</label>
           {{ slip_change_form.project }}
