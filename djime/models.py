@@ -11,17 +11,9 @@ from djime.util import delta_to_seconds, format_seconds
 class Slip(models.Model):
     name = models.CharField(max_length=128, verbose_name=_('name'))
     user = models.ForeignKey(User, related_name="slips", blank=True, null=True, verbose_name=_('user'))
-<<<<<<< HEAD:djime/models.py
     project = models.ForeignKey(Project, blank=True, null=True, verbose_name=_('project'))
     client = models.ForeignKey(Client, blank=True, null=True, verbose_name=_('client'))
     description = models.TextField(blank=True)
-=======
-    project = models.ForeignKey(Project, blank = True, null=True, verbose_name=_('project'))
-    client = models.ForeignKey(Client, blank = True, null=True, verbose_name=_('client'))
-    description = models.TextField(blank=True)
-    #type = models.CharField(max_length=32)
-    due = models.DateField(null=True, blank=True, verbose_name=_('due'))
->>>>>>> adi/master:djime/models.py
     created = models.DateTimeField(auto_now_add=True, verbose_name=_('created'))
     updated = models.DateTimeField(auto_now=True, verbose_name=_('updated'))
 
@@ -52,7 +44,6 @@ class TimeSlice(models.Model):
     duration = models.PositiveIntegerField(null=True, blank=True, verbose_name=_('duration in seconds'))
     slip = models.ForeignKey(Slip, verbose_name=_('slip'))
     user = models.ForeignKey(User, related_name="timeslices", blank=True, null=True, verbose_name=_('user'))
-<<<<<<< HEAD:djime/models.py
     note = models.TextField(null=True, blank=True, verbose_name=_('note/explanation'))
 
     def __unicode__(self):
@@ -73,16 +64,6 @@ class TimeSlice(models.Model):
         """
         if self.duration is None or force is True:
             self.duration = delta_to_seconds(end - self.begin)
-=======
-    description = models.TextField(blank=True)
-    duration = models.PositiveIntegerField(editable=False, default=0, verbose_name=_('duration'))
-
-    def __unicode__(self):
-        if self.end:
-            return _('From %(begin)s to %(end)s') % {'begin': self.begin.strftime('%Y-%m-%d %H:%M:%S'), 'end': self.end.strftime('%Y-%m-%d %H:%M:%S')}
-        else:
-            return _('From %(begin)s') % {'begin': self.begin.strftime('%Y-%m-%d %H:%m:%S')}
->>>>>>> adi/master:djime/models.py
 
 class DataImport(models.Model):
     user = models.ForeignKey(User, verbose_name=_('user'))
