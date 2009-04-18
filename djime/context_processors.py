@@ -16,7 +16,7 @@ def statusbar(request):
     """
     templatevars = {}
     if request.user.is_authenticated():
-        current_slice = TimeSlice.objects.filter(end=None, user=request.user)[:1]
+        current_slice = TimeSlice.objects.filter(duration=None, user=request.user)[:1]
         if current_slice:
             # Unpack the QuerySet to get the model object.
             cslice = current_slice[0]

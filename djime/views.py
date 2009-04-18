@@ -99,7 +99,7 @@ def slip_action(request, slip_id, action):
         # Make sure the user doesn't already have an active time slice
         # for this Slip
         if not TimeSlice.objects.filter(user=request.user,
-                                        slip=slip_id, end=None):
+                                        slip=slip_id, duration=None):
             if request.POST.has_key('begin'):
                 start_time = 0
                 time = request.POST['begin']
@@ -112,34 +112,30 @@ def slip_action(request, slip_id, action):
                 start_time = datetime.now()
 
             # Stop active timeslices if any
-            slice_query_set = TimeSlice.objects.filter(user=request.user, end=None)
+            slice_query_set = TimeSlice.objects.filter(user=request.user, duration=None)
             if slice_query_set:
                 for slice in slice_query_set:
-                    slice.end = datetime.now()
+                    slice.calculate_duration()
                     slice.save() # updates duration and saves the timeslice using signals.py
 
-            new_time_slice = TimeSlice.objects.create(user = request.user, begin = start_time, slip_id = slip_id )
+            new_time_slice = TimeSlice.objects.create(user=request.user, slip_id=slip_id, begin=start_time)
             new_time_slice.save()
             return HttpResponse(trans('Your timeslice begin time %(start_time)s has been created') % {'start_time': start_time})
         else:
             return HttpResponse(trans('You already have an unfinished time slice for this task. A new one has not been created.'), status=409)
 
     elif action == 'stop':
-        slice = TimeSlice.objects.get(user = request.user, slip = slip_id, end = None)
+        slice = TimeSlice.objects.get(user=request.user, slip=slip_id, duration=None)
         if request.POST.has_key('end'):
             time = request.POST['end']
             if type(time) == unicode:
                 time = time.split(', ')
                 end_time = datetime(int(time[0]), int(time[1]), int(time[2]), int(time[3]), int(time[4]), int(time[5]), int(time[6]))
-                slice.end = end_time
-            else:
-                slice.end = datetime.now()
         else:
-            slice.end = datetime.now()
-        # Saving the TimeSlice model also updates the duration. This is done
-        # through the pre_save signal and the timeslice_save function in signals.py
+            end_time = datetime.now()
+        slice.calculate_duration()
         slice.save()
-        return HttpResponse(trans('Your timeslice for slip "%(name)s", begintime %(begin)s has been stopped at %(end)s') % {'name': slice.slip.name, 'begin': slice.begin, 'end': slice.end})
+        return HttpResponse(trans('Your timeslice for slip "%(name)s", begintime %(begin)s has been stopped at %(end)s') % {'name': slice.slip.name, 'begin': slice.begin, 'end': end_time})
 
     elif action == 'get_json':
         slip = Slip.objects.get(id = slip_id)

@@ -16,7 +16,7 @@ class SlipAdmin(admin.ModelAdmin):
 
 class TimeSliceAdmin(admin.ModelAdmin):
     date_hierarchy = 'begin'
-    list_display = ('begin', 'end', 'duration', 'slip', 'user')
+    list_display = ('begin', 'slip', 'user', 'duration')
     list_filter = ('user', 'begin')
     ordering = ('-begin',)
 
