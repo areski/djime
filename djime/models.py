@@ -30,7 +30,7 @@ class Slip(models.Model):
 
     def display_days_time(self, date):
         seconds = 0
-        for slice in self.timeslice_set.filter(begin__range=date, date+datetime.timedelta(days=1)):
+        for slice in self.timeslice_set.filter(begin__range=(date, date+datetime.timedelta(days=1))):
             seconds += slice.duration
         return seconds
 
