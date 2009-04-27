@@ -9,6 +9,14 @@ from djime.util import delta_to_seconds, format_seconds
 
 
 class Slip(models.Model):
+    """
+    The slip is a task, assignment or similar that time is registered on.
+
+    The slip is the personal work slip, ie. it registers how much time a
+    particular person has spent on a task. This can be related to projects
+    and clients.
+
+    """
     name = models.CharField(max_length=128, verbose_name=_('name'))
     user = models.ForeignKey(User, related_name="slips", blank=True, null=True, verbose_name=_('user'))
     project = models.ForeignKey(Project, blank=True, null=True, verbose_name=_('project'))
@@ -21,6 +29,7 @@ class Slip(models.Model):
         return self.name
 
     def display_time(self):
+        """ Display the amount of time on this slip. """
         seconds = 0
         for slice in self.timeslice_set.all():
             seconds += slice.duration
@@ -29,17 +38,27 @@ class Slip(models.Model):
 
 
     def display_days_time(self, date):
+        """ Display the amount of time on this slip for a specific day. """
         seconds = 0
         for slice in self.timeslice_set.filter(begin__range=(date, date+datetime.timedelta(days=1))):
             seconds += slice.duration
         return seconds
 
     def is_active(self):
-        slice = self.timeslice_set.filter(duration = None)
+        """ Simple filter to determine whether this slip is active. """
+        slice = self.timeslice_set.filter(duration=None)
         return bool(slice)
 
 
 class TimeSlice(models.Model):
+    """
+    The TimeSlice records an amount of time spent on a slip.
+
+    The starting time is stored and the duration in seconds.
+    If the duration is NULL, the slice is assumed to be active - that the
+    timer has been started and not stopped yet.
+
+    """
     begin = models.DateTimeField(default=datetime.datetime.now, verbose_name=_('start time and date'))
     duration = models.PositiveIntegerField(null=True, blank=True, verbose_name=_('duration in seconds'))
     slip = models.ForeignKey(Slip, verbose_name=_('slip'))
@@ -66,11 +85,19 @@ class TimeSlice(models.Model):
             self.duration = delta_to_seconds(end - self.begin)
 
 class DataImport(models.Model):
+    """
+    The DataImport model is used when importing data into Djime.
+
+    It serves as storage and some sort of permanent record of the changes
+    made by an import of data from another system.
+
+    """
     user = models.ForeignKey(User, verbose_name=_('user'))
     created = models.DateTimeField(auto_now_add=True, verbose_name=_('created'))
     completed = models.DateTimeField(blank=True, null=True, verbose_name=_('completed'))
     complete_data = models.FileField(upload_to='import_data/complete/%Y/%m/', verbose_name=_('complete data'))
     partial_data = models.FileField(upload_to='import_data/partial/%Y/%m/', verbose_name=_('partial data'))
 
+# Add database triggers for extra processing.
 pre_save.connect(timeslice_save, sender=TimeSlice)
 
