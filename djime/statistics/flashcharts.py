@@ -11,24 +11,27 @@ except ImportError:
 from django.utils.translation import ugettext as _ #note, we dont use ugettext_lazy as we use json or simplejson to generate json data.
 
 def user_week_json(user, week, year):
-    slice_query_set = TimeSlice.objects.filter(week_number=week, begin__year= year, user = user)
-    # need to exclude the days days in the start of the year that can have week
-    # number 52, 53. (The lasts week of the year before)
-    if week in [52, 53]:
-        slice_query_set.exclude(begin__month=1)
     # start date is set to a day in the week before the week we want to search.
-    start_date = datetime.date(year, 1, 1) + datetime.timedelta(days = (week-2)*7)
+    start_date = datetime.date(year, 1, 1) + datetime.timedelta(days=(week-2)*7)
     # this while loop will keep adding a day to the start date, until first day of the week is reached
     # thus start_date with be the first day of the week
     while start_date.isocalendar()[1] != week:
         start_date += datetime.timedelta(days=1)
+    end_date = start_date + datetime.timedelta(days=7)
+    # the end date in the query is set to the day after the week, since we're
+    # using dates. As such, the time will be set to 0 = the very begining of day
+    # or rather the very end of the previous day.
+    slice_query_set = TimeSlice.objects.filter(begin__range=(start_date, end_date), user = user)
+    # need to exclude the days days in the start of the year that can have week
+    # number 52, 53. (The lasts week of the year before)
+    if week in [52, 53]:
+        slice_query_set.exclude(begin__month=1)
 
-    end_date = start_date + datetime.timedelta(days=6)
     while_loop_date = start_date
     date_slip_dict = {}
     sorted_date_list = []
     # this while loop generates every day every and adds that day to dictionary and list
-    while while_loop_date != end_date + datetime.timedelta(days=1):
+    while while_loop_date != end_date:
         date_slip_dict[while_loop_date]=[]
         sorted_date_list.append(while_loop_date)
         while_loop_date += datetime.timedelta(days=1)
@@ -203,19 +206,20 @@ def team_week_json(team, week, year):
     members_id = []
     for member in members:
         members_id.append(member.id)
-    slice_query_set = TimeSlice.objects.filter(week_number=week, begin__year= year, user__in = members_id)
-    if week in [52, 53]:
-        slice_query_set.exclude(begin__month=1)
 
     start_date = datetime.date(year, 1, 1) + datetime.timedelta(days = (week-2)*7)
     while start_date.isocalendar()[1] != week:
         start_date += datetime.timedelta(days=1)
+    end_date = start_date + datetime.timedelta(days=7)
 
-    end_date = start_date + datetime.timedelta(days=6)
+    slice_query_set = TimeSlice.objects.filter(begin__range=(start_date, end_date), user__in = members_id)
+    if week in [52, 53]:
+        slice_query_set.exclude(begin__month=1)
+
     w_date = start_date
     date_slip_dict = {}
     sorted_date_list = []
-    while w_date != end_date + datetime.timedelta(days=1):
+    while w_date != end_date:
         date_slip_dict[w_date]=[]
         sorted_date_list.append(w_date)
         w_date += datetime.timedelta(days=1)
@@ -391,13 +395,15 @@ def team_stat_week_json(team, week, year):
     for member in members:
         members_id.append(member.id)
 
-    slice_set = TimeSlice.objects.filter(week_number=week, begin__year= year, user__in = members_id)
-    if week in [52, 53]:
-        slice_set.exclude(begin__month=1)
     start_date = datetime.date(year, 1, 1) + datetime.timedelta(days = (week-2)*7)
     while start_date.isocalendar()[1] != week:
         start_date += datetime.timedelta(days=1)
-    end_date = start_date + datetime.timedelta(days=6)
+    end_date = start_date + datetime.timedelta(days=7)
+
+    slice_set = TimeSlice.objects.filter(begin__range=(start_date, end_date), user__in = members_id)
+
+    if week in [52, 53]:
+        slice_set.exclude(begin__month=1)
 
     team_list_dict = {}
     counter = 0
@@ -408,7 +414,7 @@ def team_stat_week_json(team, week, year):
 
     sorted_date_list = []
     w_date = start_date
-    while w_date != end_date+datetime.timedelta(days=1):
+    while w_date != end_date:
         sorted_date_list.append(w_date)
         for mem_id in members_id:
             team_list_dict[mem_id][w_date]=[]

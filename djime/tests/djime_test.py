@@ -6,6 +6,7 @@ from django.test.client import *
 from django.contrib.auth.models import User
 from django.utils.http import urlencode
 from djime.models import Slip, TimeSlice
+from djime.util import delta_to_seconds
 
 
 class RESTClient(Client):
@@ -144,7 +145,7 @@ class SlipRESTActionsTestCase(TestCase):
                 response = self.client.post('/slip/%i/' % slip.id,
                                    {'name': name})
                 if user == slip.user:
-                    self.failUnlessEqual(response.status_code, 200)
+                    self.failUnlessEqual(response.status_code, 302)
                 else:
                     self.failUnlessEqual(response.status_code, 403)
 
@@ -220,12 +221,11 @@ class SlipRESTActionsTestCase(TestCase):
                 # Lets see if we have a created timeslice with the correct end time
                 # we do that, by try, exepting that is does not exist.
                 try:
-                    time_slice = TimeSlice.objects.get(end = timeSetEnd)
+                    time_slice = TimeSlice.objects.get(begin = timeSetBegin, duration = delta_to_seconds(timeSetEnd - timeSetBegin))
                     if user != slip.user:
                         self.fail('Unauthorized user stopped timeslice')
                     else:
                         self.failUnlessEqual(timeSetBegin, time_slice.begin)
-                        self.failUnlessEqual(timeSetEnd, time_slice.end)
 
                 except TimeSlice.DoesNotExist:
                     if user == slip.user:

@@ -59,6 +59,8 @@ def slip(request, slip_id):
             slip = form.save()
 
             if request.is_ajax():
+                if not request.POST.has_key('project'):
+                    return HttpResponse(slip.name)
                 return HttpResponse("slip/%s" % slip.id)
             else:
                 return HttpResponseRedirect(reverse('slip_page',
@@ -125,9 +127,9 @@ def slip_action(request, slip_id, action):
                 end_time = datetime(int(time[0]), int(time[1]), int(time[2]), int(time[3]), int(time[4]), int(time[5]), int(time[6]))
         else:
             end_time = datetime.now()
-        time_slice.calculate_duration()
+        time_slice.calculate_duration(end_time)
         time_slice.save()
-        return HttpResponse(trans('Your timeslice for slip "%(name)s", begintime %(begin)s has been stopped at %(end)s') % {'name': slice.slip.name, 'begin': slice.begin, 'end': end_time})
+        return HttpResponse(trans('Your timeslice for slip "%(name)s", begintime %(begin)s has been stopped at %(end)s') % {'name': time_slice.slip.name, 'begin': time_slice.begin, 'end': end_time})
 
     elif action == 'get_json':
         if slip.is_active() == False:
