@@ -21,7 +21,7 @@ class Slip(models.Model):
     user = models.ForeignKey(User, related_name="slips", blank=True, null=True, verbose_name=_('user'))
     project = models.ForeignKey(Project, blank=True, null=True, verbose_name=_('project'))
     client = models.ForeignKey(Client, blank=True, null=True, verbose_name=_('client'))
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, verbose_name=_('created'))
     updated = models.DateTimeField(auto_now=True, verbose_name=_('updated'))
 
