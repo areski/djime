@@ -51,7 +51,12 @@ class StatisticsRESTActionsTestCase(TestCase):
         
                 # test to see if the value is shown as is should. This work by getting the value(s) from the fixture DB and comparing to the json_content
                 # first get the timetimes and put the slip into the dict if it's not there:
-                slice_set = user.timeslices.filter(week_number=week)
+                start_date = datetime.date(year, 1, 1) + datetime.timedelta(days = (week-2)*7)
+                while start_date.isocalendar()[1] != week:
+                    start_date += datetime.timedelta(days=1)
+                end_date = start_date + datetime.timedelta(days=7)
+
+                slice_set = user.timeslices.filter(begin__range=(start_date,end_date))
                 slip_dict = {}
                 for slic in slice_set:
                     if not slip_dict.has_key(slic.begin.date()):
@@ -59,16 +64,11 @@ class StatisticsRESTActionsTestCase(TestCase):
                     else:
                         if slic.slip not in slip_dict[slic.begin.date()]:
                              slip_dict[slic.begin.date()].append(slic.slip)
-        
-                start_date = datetime.date(year, 1, 1) + datetime.timedelta(days = (week-2)*7)
-                while start_date.isocalendar()[1] != week:
-                    start_date += datetime.timedelta(days=1)
                                 
                 # make a list of all the dates for the chosen week:
-                end_date = start_date + datetime.timedelta(days=6)
                 w_date = start_date
                 all_dates_list = []
-                while w_date != end_date + datetime.timedelta(days=1):
+                while w_date != end_date:
                     all_dates_list.append(w_date)
                     w_date += datetime.timedelta(days=1)
     
@@ -226,7 +226,13 @@ class StatisticsRESTActionsTestCase(TestCase):
                 members_id = []
                 for member in members:
                     members_id.append(member.id)
-                slice_set = TimeSlice.objects.filter(week_number=week, begin__year=year, user__in=members_id)
+
+                start_date = datetime.date(year, 1, 1) + datetime.timedelta(days = (week-2)*7)
+                while start_date.isocalendar()[1] != week:
+                    start_date += datetime.timedelta(days=1)
+                end_date = start_date + datetime.timedelta(days=7)
+
+                slice_set = TimeSlice.objects.filter(begin__range=(start_date, end_date), user__in=members_id)
                 
                 slip_dict = {}
                 for slic in slice_set:
@@ -235,15 +241,10 @@ class StatisticsRESTActionsTestCase(TestCase):
                     else:
                         if slic.slip not in slip_dict[slic.begin.date()]:
                              slip_dict[slic.begin.date()].append(slic.slip)
-        
-                start_date = datetime.date(year, 1, 1) + datetime.timedelta(days = (week-2)*7)
-                while start_date.isocalendar()[1] != week:
-                    start_date += datetime.timedelta(days=1)
-                                
-                end_date = start_date + datetime.timedelta(days=6)
+
                 w_date = start_date
                 all_dates_list = []
-                while w_date != end_date + datetime.timedelta(days=1):
+                while w_date != end_date:
                     all_dates_list.append(w_date)
                     w_date += datetime.timedelta(days=1)
         
@@ -394,33 +395,33 @@ class StatisticsRESTActionsTestCase(TestCase):
         
                 response = self.client.get('/statistics/team_stat/%s/year/%s/week/%s/' % (team.id-1, year, week))
                 self.failUnlessEqual(response.status_code, 403)
-        
+
                 response = self.client.get('/statistics/data/team_stat/%s/year/%s/week/%s/' % (team.id, year, week))
         
                 json_content = json.loads(response.content)
-                
+
                 members = team.members.all()
                 members_id = []
                 for member in members:
                     members_id.append(member.id)
+
+                start_date = datetime.date(year, 1, 1) + datetime.timedelta(days = (week-2)*7)
+                while start_date.isocalendar()[1] != week:
+                    start_date += datetime.timedelta(days=1)
+                end_date = start_date + datetime.timedelta(days=7)
                 
-                slice_set = TimeSlice.objects.filter(week_number=week, begin__year=year, user__in=members_id)
+                slice_set = TimeSlice.objects.filter(begin__range=(start_date, end_date), user__in=members_id)
                 
                 # new slip_dict has keys equal to the team members id, and values equal to a new dict.
                 slip_dict = {}
                 for member in members_id:
                     slip_dict[member] = {}
-                   
-                start_date = datetime.date(year, 1, 1) + datetime.timedelta(days = (week-2)*7)
-                while start_date.isocalendar()[1] != week:
-                    start_date += datetime.timedelta(days=1)
-                end_date = start_date + datetime.timedelta(days=6)
-                    
+
                 w_date = start_date
                 all_dates_list = []
                 # this loop generates all the dates in a list and keys for all the dates in each members dict in the slip_dict.
                 # each date_key is a new dict with two keys, slip, a list to hold the slips, for checking and 'value' default 0 which is the value for that day for that user.
-                while w_date != end_date + datetime.timedelta(days=1):
+                while w_date != end_date:
                     all_dates_list.append(w_date)
                     for member in members_id:
                         slip_dict[member][w_date] = {'slip' : [], 'value': 0}

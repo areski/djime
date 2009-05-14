@@ -7,7 +7,7 @@
 {% block content %}
   <div id="block-list" class="block">
     <div class="content">
-      <h2 class="title">{% trans "Projects for " %}{{ client }}:</h1>
+      <h2 class="title">{% trans "Projects for " %}{{ client }}:</h2>
       <div class="inner">
         {% for project in project_list %}
           <p><a href="{% url project_page project_id=project.id %}">

@@ -1,18 +1,15 @@
-
 from south.db import db
 from django.db import models
 from djime.models import *
 
 class Migration:
-    
+    """ Initial migration, setting up the original database schema. """
     def forwards(self):
-        
-        
         # Mock Models
         User = db.mock_model(model_name='User', db_table='auth_user', db_tablespace='', pk_field_name='id', pk_field_type=models.AutoField, pk_field_args=[], pk_field_kwargs={})
         Project = db.mock_model(model_name='Project', db_table='project_project', db_tablespace='', pk_field_name='id', pk_field_type=models.AutoField, pk_field_args=[], pk_field_kwargs={})
         Client = db.mock_model(model_name='Client', db_table='project_client', db_tablespace='', pk_field_name='id', pk_field_type=models.AutoField, pk_field_args=[], pk_field_kwargs={})
-        
+
         # Model 'Slip'
         db.create_table('djime_slip', (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
@@ -24,11 +21,11 @@ class Migration:
             ('created', models.DateTimeField(auto_now_add=True)),
             ('updated', models.DateTimeField(auto_now=True)),
         ))
-        
+
         # Mock Models
         Slip = db.mock_model(model_name='Slip', db_table='djime_slip', db_tablespace='', pk_field_name='id', pk_field_type=models.AutoField, pk_field_args=[], pk_field_kwargs={})
         User = db.mock_model(model_name='User', db_table='auth_user', db_tablespace='', pk_field_name='id', pk_field_type=models.AutoField, pk_field_args=[], pk_field_kwargs={})
-        
+
         # Model 'TimeSlice'
         db.create_table('djime_timeslice', (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
@@ -40,10 +37,10 @@ class Migration:
             ('week_number', models.PositiveIntegerField(default=datetime.datetime.now().isocalendar()[1])),
             ('create_date', models.DateField(default=datetime.datetime.now().date())),
         ))
-        
+
         # Mock Models
         User = db.mock_model(model_name='User', db_table='auth_user', db_tablespace='', pk_field_name='id', pk_field_type=models.AutoField, pk_field_args=[], pk_field_kwargs={})
-        
+
         # Model 'DataImport'
         db.create_table('djime_dataimport', (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
@@ -53,11 +50,11 @@ class Migration:
             ('complete_data', models.FileField(upload_to='import_data/complete/%Y/%m/')),
             ('partial_data', models.FileField(upload_to='import_data/partial/%Y/%m/')),
         ))
-        
+
         db.send_create_signal('djime', ['Slip','TimeSlice','DataImport'])
-    
+
     def backwards(self):
         db.delete_table('djime_dataimport')
         db.delete_table('djime_timeslice')
         db.delete_table('djime_slip')
-        
+

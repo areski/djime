@@ -5,14 +5,11 @@
 {% block head_title %}{{ slip.name }}{% endblock %}
 
 {% block extra_head %}
-  <link type="text/css" rel="stylesheet" media="all" href="{{ STATIC_URL }}external/jquery.ui/redmond/jquery-ui-1.7.1.custom.css" />
+  <link type="text/css" rel="stylesheet" media="all" href="{{ DEMO_STATIC_URL }}jquery.ui-1.6rc6/themes/redmond/ui.all.css" />
   <link type="text/css" rel="stylesheet" media="all" href="{{ STATIC_URL }}css/tracker.css" />
 {% endblock %}
 
 {% block content %}
-    {% load slip_tags %}
-    {% get_time_slices slip %}
-
   <div id="block-text" class="block">
     <div class="content">
       <div id="dialog-box"></div>
@@ -20,22 +17,10 @@
         <div class="edit" id="div-1">{{ slip.name }}</div>
       </h2>
       <div class="inner">
-        <p>{% trans "Project: " %}{{ slip.project }}</p>
-        <p>{% trans "Client: " %}{{ slip.client }}</p>
-        <p>{% trans "Total time:" %} <span id="slip-total-time">{{ slip.display_time }}</span></p>
-        <div id="slip-timer-button" class="{{ timer_class }} {{ slip.id }}"><div class="timeclock">0:00</div></div>
-        <div id="time_slices">
-            
-                <p>
-                    <ul>
-                        {% for time_slice in time_slices %}
-                            <li> <a href="{% url time_slice_page time_slice.slip.id time_slice.id %}">{{ time_slice }}</a>
-                        {% endfor %}
-                    </ul>
-                </p>
-                <h3>{% trans "Add a new time slice" %}</h3>
-                <form class="form" method="POST" action="{% url time_slice_create slip.id%}">
-                {% get_time_slice_form %}
+        <div id="time_slice_form">
+            {% trans "Add a new time slice" %}
+            <form class="form" method="POST" action="{% url time_slice_create slip.id%}">
+                {{ time_slice_add_form }}
                 <input type="submit" name="create" Value="{% trans "Create" %}">
             </form>
         </div>
@@ -54,11 +39,6 @@
     <form class="form" method="post" action="{% url slip_page slip.id %}">
       {{ slip_change_form.errors }}
       <ul class="form-items">
-        <div class="group">
-          {{ slip_change_form.name.errors }}
-          <label for="id_project">Name:</label>
-          {{ slip_change_form.name }}
-        </div>
         <div class="group">
           {{ slip_change_form.project.errors }}
           <label for="id_project">Project:</label>
@@ -82,9 +62,9 @@
   <script type="text/javascript" src="{{ STATIC_URL }}external/misc/jquery.timeclock.js"></script>
   {% endif %}
   <script type="text/javascript" src="{{ STATIC_URL }}js/tracker.js"></script>
-  <script type="text/javascript" src="{{ STATIC_URL }}external/misc/jquery.jeditable.js"></script>
-  <script type="text/javascript" src="{{ STATIC_URL }}external/jquery.ui/jquery-ui-1.7.1.custom.min.js"></script>
-  <script type="text/javascript" src="{{ STATIC_URL }}external/misc/jquery.autocomplete.js"></script>
+  <script type="text/javascript" src="{{ DEMO_STATIC_URL }}js/jquery.jeditable.js"></script>
+  <script type="text/javascript" src="{{ DEMO_STATIC_URL }}jquery.ui-1.6rc6/ui/jquery.ui.all.js"></script>
+  <script type="text/javascript" src="{{ DEMO_STATIC_URL }}js/jquery.autocomplete.js"></script>
   <script type="text/javascript" src="{{ STATIC_URL }}js/djime.js"></script>
   <script type="text/javascript" src="{{ STATIC_URL }}js/form.js"></script>
   <script type="text/javascript">

@@ -11,34 +11,39 @@ except ImportError:
 from django.utils.translation import ugettext as _ #note, we dont use ugettext_lazy as we use json or simplejson to generate json data.
 
 def user_week_json(user, week, year):
-    slice_query_set = TimeSlice.objects.filter(week_number=week, begin__year= year, user = user)
-    # need to exclude the days days in the start of the year that can have week
-    # number 52, 53. (The lasts week of the year before)
-    if week in [52, 53]:
-        slice_query_set.exclude(begin__month=1)
     # start date is set to a day in the week before the week we want to search.
-    start_date = datetime.date(year, 1, 1) + datetime.timedelta(days = (week-2)*7)
+    start_date = datetime.date(year, 1, 1) + datetime.timedelta(days=(week-2)*7)
     # this while loop will keep adding a day to the start date, until first day of the week is reached
     # thus start_date with be the first day of the week
     while start_date.isocalendar()[1] != week:
         start_date += datetime.timedelta(days=1)
+    end_date = start_date + datetime.timedelta(days=7)
+    # the end date in the query is set to the day after the week, since we're
+    # using dates. As such, the time will be set to 0 = the very begining of day
+    # or rather the very end of the previous day.
+    slice_query_set = TimeSlice.objects.select_related().filter(begin__range=(start_date, end_date), user = user)
+    # need to exclude the days days in the start of the year that can have week
+    # number 52, 53. (The lasts week of the year before)
+    if week in [52, 53]:
+        slice_query_set.exclude(begin__month=1)
 
-    end_date = start_date + datetime.timedelta(days=6)
     while_loop_date = start_date
     date_slip_dict = {}
     sorted_date_list = []
     # this while loop generates every day every and adds that day to dictionary and list
-    while while_loop_date != end_date + datetime.timedelta(days=1):
-        date_slip_dict[while_loop_date]=[]
+    while while_loop_date != end_date:
+        date_slip_dict[while_loop_date]={}
         sorted_date_list.append(while_loop_date)
         while_loop_date += datetime.timedelta(days=1)
     
     # this loop checks to see if a given slip of a timeslice is added to the list of that day.
     # if it hasn't been added yet it adds it to the list of slips containing timeslices made that day.
     for slice in slice_query_set:
-        if slice.slip not in date_slip_dict[slice.begin.date()]:
-            date_slip_dict[slice.begin.date()].append(slice.slip)
-    
+        if not date_slip_dict[slice.begin.date()].has_key(slice.slip.id):
+            date_slip_dict[slice.begin.date()][slice.slip.id] = {"slip": slice.slip, "duration": slice.duration}
+        else:
+            date_slip_dict[slice.begin.date()][slice.slip.id]['duration'] += slice.duration
+
     # the value_dictionary, will be the dictionary that needs to be converted to json data. A lot of the data is static strings,
     # but there are 6 varibles that are different. 2 empty lists where data will be appended (values and labels list) and 4 values set to True.
     # can add a colour generator later to create colours for the graph instead of static colours.
@@ -61,12 +66,12 @@ def user_week_json(user, week, year):
         if len(date_slip_dict[date]) == 0:
             value_dictionary['elements'][0]['values'].append([0])   # if len = 0, there are no items, so the while loop wont activate, and we can simply add [0]
         else:
-            while i < len(date_slip_dict[date]):
-                while_dictionary = {'val': True, 'key': True}
-                while_dictionary['val'] = date_slip_dict[date][i].display_days_time(date)
-                while_dictionary['key'] = '%s' % date_slip_dict[date][i].name
-                temp_max += date_slip_dict[date][i].display_days_time(date)
-                value_list.append(while_dictionary)
+            for slip_id in date_slip_dict[date].keys():
+                for_dictionary = {'val': True, 'key': True}
+                for_dictionary['val'] = date_slip_dict[date][slip_id]['duration']
+                for_dictionary['key'] = '%s' % date_slip_dict[date][slip_id]['slip'].name
+                temp_max += date_slip_dict[date][slip_id]['duration']
+                value_list.append(for_dictionary)
                 i += 1
             max_list.append(temp_max)
             value_dictionary['elements'][0]['values'].append(value_list)
@@ -97,14 +102,16 @@ def user_month_json(user, month, year):
     date_slip_dict = {}
     sorted_date_list = []
     while w_date != end_date + datetime.timedelta(days=1):
-        date_slip_dict[w_date]=[]
+        date_slip_dict[w_date]={}
         sorted_date_list.append(w_date)
         w_date += datetime.timedelta(days=1)
 
-    slice_query_set = TimeSlice.objects.filter(user = user, begin__range=(start_date, end_date))
+    slice_query_set = TimeSlice.objects.select_related().filter(user = user, begin__range=(start_date, end_date))
     for slice in slice_query_set:
-        if slice.slip not in date_slip_dict[slice.begin.date()]:
-            date_slip_dict[slice.begin.date()].append(slice.slip)
+        if not date_slip_dict[slice.begin.date()].has_key(slice.slip.id):
+            date_slip_dict[slice.begin.date()][slice.slip.id] = {"slip": slice.slip, "duration": slice.duration}
+        else:
+            date_slip_dict[slice.begin.date()][slice.slip.id]['duration'] += slice.duration
 
     value_dictionary = {}
     value_dictionary['elements'] = [{"tip": _("#key#<br>Time: #gmdate:H.i# Total: #totalgmdate:H.i#"), "type": "bar_stack", "colours": ["#FF0000", "#0000FF", "#00FF00", "#FFFF00", "#FF00FF", "#00FFFF", "#000000", "#FFFFFF"], "values": []}]
@@ -122,12 +129,12 @@ def user_month_json(user, month, year):
         if len(date_slip_dict[date]) == 0:
             value_dictionary['elements'][0]['values'].append([0])
         else:
-            while i < len(date_slip_dict[date]):
-                while_dictionary = {'val': True, 'key': True}
-                while_dictionary['val'] = date_slip_dict[date][i].display_days_time(date)
-                while_dictionary['key'] = '%s' % date_slip_dict[date][i].name
-                temp_max += date_slip_dict[date][i].display_days_time(date)
-                value_list.append(while_dictionary)
+            for slip_id in date_slip_dict[date].keys():
+                for_dictionary = {'val': True, 'key': True}
+                for_dictionary['val'] = date_slip_dict[date][slip_id]['duration']
+                for_dictionary['key'] = '%s' % date_slip_dict[date][slip_id]['slip'].name
+                temp_max += date_slip_dict[date][slip_id]['duration']
+                value_list.append(for_dictionary)
                 i += 1
             max_list.append(temp_max)
             value_dictionary['elements'][0]['values'].append(value_list)
@@ -152,14 +159,16 @@ def user_date_json(user, start_date, end_date):
     date_slip_dict = {}
     sorted_date_list = []
     while w_date != e_date + datetime.timedelta(days=1):
-        date_slip_dict[w_date]=[]
+        date_slip_dict[w_date]={}
         sorted_date_list.append(w_date)
         w_date += datetime.timedelta(days=1)
 
-    slice_query_set = TimeSlice.objects.filter(user = user, begin__range=(s_date, e_date))
+    slice_query_set = TimeSlice.objects.select_related().filter(user = user, begin__range=(s_date, e_date))
     for slice in slice_query_set:
-        if slice.slip not in date_slip_dict[slice.begin.date()]:
-            date_slip_dict[slice.begin.date()].append(slice.slip)
+        if not date_slip_dict[slice.begin.date()].has_key(slice.slip.id):
+            date_slip_dict[slice.begin.date()][slice.slip.id] = {"slip": slice.slip, "duration": slice.duration}
+        else:
+            date_slip_dict[slice.begin.date()][slice.slip.id]['duration'] += slice.duration
 
     value_dictionary = {}
     value_dictionary['elements'] = [{"tip": _("#key#<br>Time: #gmdate:H.i# Total: #totalgmdate:H.i#"), "type": "bar_stack", "colours": ["#FF0000", "#0000FF", "#00FF00", "#FFFF00", "#FF00FF", "#00FFFF", "#000000", "#FFFFFF"], "values": []}]
@@ -177,12 +186,12 @@ def user_date_json(user, start_date, end_date):
         if len(date_slip_dict[date]) == 0:
             value_dictionary['elements'][0]['values'].append([0])
         else:
-            while i < len(date_slip_dict[date]):
-                while_dictionary = {'val': True, 'key': True}
-                while_dictionary['val'] = date_slip_dict[date][i].display_days_time(date)
-                while_dictionary['key'] = '%s' % date_slip_dict[date][i].name
-                temp_max += date_slip_dict[date][i].display_days_time(date)
-                value_list.append(while_dictionary)
+            for slip_id in date_slip_dict[date].keys():
+                for_dictionary = {'val': True, 'key': True}
+                for_dictionary['val'] = date_slip_dict[date][slip_id]['duration']
+                for_dictionary['key'] = '%s' % date_slip_dict[date][slip_id]['slip'].name
+                temp_max += date_slip_dict[date][slip_id]['duration']
+                value_list.append(for_dictionary)
                 i += 1
             max_list.append(temp_max)
             value_dictionary['elements'][0]['values'].append(value_list)
@@ -203,26 +212,29 @@ def team_week_json(team, week, year):
     members_id = []
     for member in members:
         members_id.append(member.id)
-    slice_query_set = TimeSlice.objects.filter(week_number=week, begin__year= year, user__in = members_id)
-    if week in [52, 53]:
-        slice_query_set.exclude(begin__month=1)
 
     start_date = datetime.date(year, 1, 1) + datetime.timedelta(days = (week-2)*7)
     while start_date.isocalendar()[1] != week:
         start_date += datetime.timedelta(days=1)
+    end_date = start_date + datetime.timedelta(days=7)
 
-    end_date = start_date + datetime.timedelta(days=6)
+    slice_query_set = TimeSlice.objects.select_related().filter(begin__range=(start_date, end_date), user__in = members_id)
+    if week in [52, 53]:
+        slice_query_set.exclude(begin__month=1)
+
     w_date = start_date
     date_slip_dict = {}
     sorted_date_list = []
-    while w_date != end_date + datetime.timedelta(days=1):
-        date_slip_dict[w_date]=[]
+    while w_date != end_date:
+        date_slip_dict[w_date]={}
         sorted_date_list.append(w_date)
         w_date += datetime.timedelta(days=1)
 
     for slice in slice_query_set:
-        if slice.slip not in date_slip_dict[slice.begin.date()]:
-            date_slip_dict[slice.begin.date()].append(slice.slip)
+        if not date_slip_dict[slice.begin.date()].has_key(slice.slip.id):
+            date_slip_dict[slice.begin.date()][slice.slip.id] = {"slip": slice.slip, "duration": slice.duration}
+        else:
+            date_slip_dict[slice.begin.date()][slice.slip.id]['duration'] += slice.duration
 
     value_dictionary = {}
     value_dictionary['elements'] = [{"tip": _("#key#<br>Time: #gmdate:H.i# Total: #totalgmdate:H.i#"), "type": "bar_stack", "colours": ["#FF0000", "#0000FF", "#00FF00", "#FFFF00", "#FF00FF", "#00FFFF", "#000000", "#FFFFFF"], "values": []}]
@@ -240,12 +252,12 @@ def team_week_json(team, week, year):
         if len(date_slip_dict[date]) == 0:
             value_dictionary['elements'][0]['values'].append([0])   # if len = 0, there are no items, so the while loop wont activate, and we can simply add [0]
         else:
-            while i < len(date_slip_dict[date]):
-                while_dictionary = {'val': True, 'key': True}
-                while_dictionary['val'] = date_slip_dict[date][i].display_days_time(date)
-                while_dictionary['key'] = '%s' % date_slip_dict[date][i].name
-                temp_max += date_slip_dict[date][i].display_days_time(date)
-                value_list.append(while_dictionary)
+            for slip_id in date_slip_dict[date].keys():
+                for_dictionary = {'val': True, 'key': True}
+                for_dictionary['val'] = date_slip_dict[date][slip_id]['duration']
+                for_dictionary['key'] = '%s' % date_slip_dict[date][slip_id]['slip'].name
+                temp_max += date_slip_dict[date][slip_id]['duration']
+                value_list.append(for_dictionary)
                 i += 1
             max_list.append(temp_max)
             value_dictionary['elements'][0]['values'].append(value_list)
@@ -272,7 +284,7 @@ def team_month_json(team, month, year):
     date_slip_dict = {}
     sorted_date_list = []
     while w_date != end_date + datetime.timedelta(days=1):
-        date_slip_dict[w_date]=[]
+        date_slip_dict[w_date]={}
         sorted_date_list.append(w_date)
         w_date += datetime.timedelta(days=1)
 
@@ -280,11 +292,13 @@ def team_month_json(team, month, year):
     members_id = []
     for member in members:
         members_id.append(member.id)
-    slice_set = TimeSlice.objects.filter(user__in = members_id, begin__range=(start_date, end_date))
+    slice_query_set = TimeSlice.objects.select_related().filter(user__in = members_id, begin__range=(start_date, end_date))
 
-    for slice in slice_set:
-        if slice.slip not in date_slip_dict[slice.begin.date()]:
-            date_slip_dict[slice.begin.date()].append(slice.slip)
+    for slice in slice_query_set:
+        if not date_slip_dict[slice.begin.date()].has_key(slice.slip.id):
+            date_slip_dict[slice.begin.date()][slice.slip.id] = {"slip": slice.slip, "duration": slice.duration}
+        else:
+            date_slip_dict[slice.begin.date()][slice.slip.id]['duration'] += slice.duration
 
     value_dictionary = {}
     value_dictionary['elements'] = [{"tip": _("#key#<br>Time: #gmdate:H.i# Total: #totalgmdate:H.i#"), "type": "bar_stack", "colours": ["#FF0000", "#0000FF", "#00FF00", "#FFFF00", "#FF00FF", "#00FFFF", "#000000", "#FFFFFF"], "values": []}]
@@ -302,12 +316,12 @@ def team_month_json(team, month, year):
         if len(date_slip_dict[date]) == 0:
             value_dictionary['elements'][0]['values'].append([0])
         else:
-            while i < len(date_slip_dict[date]):
-                while_dictionary = {'val': True, 'key': True}
-                while_dictionary['val'] = date_slip_dict[date][i].display_days_time(date)
-                while_dictionary['key'] = '%s' % date_slip_dict[date][i].name
-                temp_max += date_slip_dict[date][i].display_days_time(date)
-                value_list.append(while_dictionary)
+            for slip_id in date_slip_dict[date].keys():
+                for_dictionary = {'val': True, 'key': True}
+                for_dictionary['val'] = date_slip_dict[date][slip_id]['duration']
+                for_dictionary['key'] = '%s' % date_slip_dict[date][slip_id]['slip'].name
+                temp_max += date_slip_dict[date][slip_id]['duration']
+                value_list.append(for_dictionary)
                 i += 1
             max_list.append(temp_max)
             value_dictionary['elements'][0]['values'].append(value_list)
@@ -341,11 +355,13 @@ def team_date_json(team, start_date, end_date):
     members_id = []
     for member in members:
         members_id.append(member.id)
-    slice_set = TimeSlice.objects.filter(user__in = members_id, begin__range=(s_date, e_date))
+    slice_query_set = TimeSlice.objects.select_related().filter(user__in = members_id, begin__range=(s_date, e_date))
 
-    for slice in slice_set:
-        if slice.slip not in date_slip_dict[slice.begin.date()]:
-            date_slip_dict[slice.begin.date()].append(slice.slip)
+    for slice in slice_query_set:
+        if not date_slip_dict[slice.begin.date()].has_key(slice.slip.id):
+            date_slip_dict[slice.begin.date()][slice.slip.id] = {"slip": slice.slip, "duration": slice.duration}
+        else:
+            date_slip_dict[slice.begin.date()][slice.slip.id]['duration'] += slice.duration
 
     value_dictionary = {}
     value_dictionary['elements'] = [{"tip": _("#key#<br>Time: #gmdate:H.i# Total: #totalgmdate:H.i#"), "type": "bar_stack", "colours": ["#FF0000", "#0000FF", "#00FF00", "#FFFF00", "#FF00FF", "#00FFFF", "#000000", "#FFFFFF"], "values": []}]
@@ -363,12 +379,12 @@ def team_date_json(team, start_date, end_date):
         if len(date_slip_dict[date]) == 0:
             value_dictionary['elements'][0]['values'].append([0])
         else:
-            while i < len(date_slip_dict[date]):
-                while_dictionary = {'val': True, 'key': True}
-                while_dictionary['val'] = date_slip_dict[date][i].display_days_time(date)
-                while_dictionary['key'] = '%s' % date_slip_dict[date][i].name
-                temp_max += date_slip_dict[date][i].display_days_time(date)
-                value_list.append(while_dictionary)
+            for slip_id in date_slip_dict[date].keys():
+                for_dictionary = {'val': True, 'key': True}
+                for_dictionary['val'] = date_slip_dict[date][slip_id]['duration']
+                for_dictionary['key'] = '%s' % date_slip_dict[date][slip_id]['slip'].name
+                temp_max += date_slip_dict[date][slip_id]['duration']
+                value_list.append(for_dictionary)
                 i += 1
             max_list.append(temp_max)
             value_dictionary['elements'][0]['values'].append(value_list)
@@ -391,13 +407,15 @@ def team_stat_week_json(team, week, year):
     for member in members:
         members_id.append(member.id)
 
-    slice_set = TimeSlice.objects.filter(week_number=week, begin__year= year, user__in = members_id)
-    if week in [52, 53]:
-        slice_set.exclude(begin__month=1)
     start_date = datetime.date(year, 1, 1) + datetime.timedelta(days = (week-2)*7)
     while start_date.isocalendar()[1] != week:
         start_date += datetime.timedelta(days=1)
-    end_date = start_date + datetime.timedelta(days=6)
+    end_date = start_date + datetime.timedelta(days=7)
+
+    slice_set = TimeSlice.objects.select_related().filter(begin__range=(start_date, end_date), user__in = members_id)
+
+    if week in [52, 53]:
+        slice_set.exclude(begin__month=1)
 
     team_list_dict = {}
     counter = 0
@@ -408,15 +426,17 @@ def team_stat_week_json(team, week, year):
 
     sorted_date_list = []
     w_date = start_date
-    while w_date != end_date+datetime.timedelta(days=1):
+    while w_date != end_date:
         sorted_date_list.append(w_date)
         for mem_id in members_id:
-            team_list_dict[mem_id][w_date]=[]
+            team_list_dict[mem_id][w_date]={}
         w_date += datetime.timedelta(days=1)
 
     for slice in slice_set:
-        if slice.slip not in team_list_dict[slice.user_id][slice.begin.date()]:
-            team_list_dict[slice.user_id][slice.begin.date()].append(slice.slip)
+        if slice.slip.id not in team_list_dict[slice.user_id][slice.begin.date()].keys():
+            team_list_dict[slice.user_id][slice.begin.date()][slice.slip.id] = {"slip": slice.slip, "duration": slice.duration}
+        else:
+            team_list_dict[slice.user_id][slice.begin.date()][slice.slip.id]["duration"] += slice.duration
 
     # the value_dictionary has a bit different layout for the team_stat views. elements is now an empty list, where dictionaries can be added.
     # You need 1 dictionary for each set of bars/scatter_line you want to add to your graph. Tooltip and colour can be added imediately,
@@ -434,11 +454,9 @@ def team_stat_week_json(team, week, year):
     for date in sorted_date_list:
         value_dictionary['x_axis']['labels']['labels'].append(date.strftime('%A'))
         for mem_id in members_id:
-            i = 0
             temp_value = 0.0
-            while i < len(team_list_dict[mem_id][date]):
-                temp_value += team_list_dict[mem_id][date][i].display_days_time(date)
-                i += 1
+            for slip_id in team_list_dict[mem_id][date].keys():
+                temp_value += team_list_dict[mem_id][date][slip_id]['duration']
             team_list_dict[mem_id]['value']['values'].append(temp_value)
             max_list.append(temp_value)
 
@@ -469,7 +487,7 @@ def team_stat_month_json(team, month, year):
     while end_date.month != start_date.month:
         end_date -= datetime.timedelta(days=1)
 
-    slice_set = TimeSlice.objects.filter(begin__range=(start_date, end_date), user__in=members_id)
+    slice_set = TimeSlice.objects.select_related().filter(begin__range=(start_date, end_date), user__in=members_id)
     team_list_dict = {}
     counter = 0
     for mem_id in members_id:
@@ -482,12 +500,14 @@ def team_stat_month_json(team, month, year):
     while w_date != end_date + datetime.timedelta(days=1):
         sorted_date_list.append(w_date)
         for mem_id in members_id:
-            team_list_dict[mem_id][w_date]=[]
+            team_list_dict[mem_id][w_date]={}
         w_date += datetime.timedelta(days=1)
 
     for slice in slice_set:
-        if slice.slip not in team_list_dict[slice.user_id][slice.begin.date()]:
-            team_list_dict[slice.user_id][slice.begin.date()].append(slice.slip)
+        if slice.slip.id not in team_list_dict[slice.user_id][slice.begin.date()].keys():
+            team_list_dict[slice.user_id][slice.begin.date()][slice.slip.id] = {"slip": slice.slip, "duration": slice.duration}
+        else:
+            team_list_dict[slice.user_id][slice.begin.date()][slice.slip.id]["duration"] += slice.duration
 
     value_dictionary = {}
     value_dictionary['elements'] = []
@@ -499,12 +519,10 @@ def team_stat_month_json(team, month, year):
     max_list = [0.01]
     for date in sorted_date_list:
         for mem_id in members_id:
-            i = 0
             temp_value = 0.0
             temp_value_dict = {'x': True, 'y': True} # in this case chords in the form of a dictionary is added as a value, instead of a float.
-            while i < len(team_list_dict[mem_id][date]):
-                temp_value += team_list_dict[mem_id][date][i].display_days_time(date)
-                i += 1
+            for slip_id in team_list_dict[mem_id][date].keys():
+                temp_value += team_list_dict[mem_id][date][slip_id]['duration']
             temp_value_dict['x'] = date.day
             temp_value_dict['y'] = temp_value
             team_list_dict[mem_id]['value']['values'].append(temp_value_dict)
@@ -533,7 +551,7 @@ def team_stat_date_json(team, start_date, end_date):
     for member in members:
         members_id.append(member.id)
 
-    slice_set = TimeSlice.objects.filter(begin__range=(s_date, e_date), user__in=members_id)
+    slice_set = TimeSlice.objects.select_related().filter(begin__range=(s_date, e_date), user__in=members_id)
     team_list_dict = {}
     counter = 0
     for mem_id in members_id:
@@ -546,12 +564,14 @@ def team_stat_date_json(team, start_date, end_date):
     while w_date != e_date + datetime.timedelta(days=1):
         sorted_date_list.append(w_date)
         for mem_id in members_id:
-            team_list_dict[mem_id][w_date]=[]
+            team_list_dict[mem_id][w_date]={}
         w_date += datetime.timedelta(days=1)
 
     for slice in slice_set:
-        if slice.slip not in team_list_dict[slice.user_id][slice.begin.date()]:
-            team_list_dict[slice.user_id][slice.begin.date()].append(slice.slip)
+        if slice.slip.id not in team_list_dict[slice.user_id][slice.begin.date()].keys():
+            team_list_dict[slice.user_id][slice.begin.date()][slice.slip.id] = {"slip": slice.slip, "duration": slice.duration}
+        else:
+            team_list_dict[slice.user_id][slice.begin.date()][slice.slip.id]["duration"] += slice.duration
 
     # in this graph we will use unix timestamps as x-values, so steps are set to 86400 (seconds) which is equal to one day.
     # we utilize the special "text":"#date:m-d#" command for labels which generates a date in format mm-dd, from the unix timestamps.
@@ -565,12 +585,10 @@ def team_stat_date_json(team, start_date, end_date):
     max_list = [0.01]
     for date in sorted_date_list:
         for mem_id in members_id:
-            i = 0
             temp_value = 0.0
             temp_value_dict = {'x': True, 'y': True}
-            while i < len(team_list_dict[mem_id][date]):
-                temp_value += team_list_dict[mem_id][date][i].display_days_time(date)
-                i += 1
+            for slip_id in team_list_dict[mem_id][date].keys():
+                temp_value += team_list_dict[mem_id][date][slip_id]['duration']
             temp_value_dict['x'] = time.mktime(date.timetuple())
             temp_value_dict['y'] = temp_value
             team_list_dict[mem_id]['value']['values'].append(temp_value_dict)
