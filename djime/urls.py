@@ -11,6 +11,7 @@ urlpatterns = patterns('djime.views',
     url(r'^slip/(?P<slip_id>\d+)/slice/add$',
         'time_slice_create', name="time_slice_create"),
     url(r'^slip/add', 'slip_create', name="slip_create"),
+    url(r'^sheet/$', 'time_sheet_index', name='time_sheet_index'),
     (r'^import/', include('djime.data_import.urls')),
     (r'^statistics/', include('djime.statistics.urls')),
 )

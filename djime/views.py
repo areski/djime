@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
@@ -7,9 +8,11 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.html import escape
 from django.utils.translation import ugettext as trans
-from djime.forms import SlipForm, TimeSliceForm
+
 from djime.models import Slip, TimeSlice
+from djime.forms import SlipForm, TimeSliceForm, TimeSliceSheetForm
 from project.models import Client, Project
+
 try:
     import json
 except ImportError:
@@ -29,11 +32,45 @@ def dashboard(request):
 
 @login_required
 def index(request):
-    return render_to_response('djime/slip_index.html',
-                              {'slip_list': Slip.objects.filter(user=request.user),
-                               'slip_add_form': SlipForm()
-                               },
-                              context_instance=RequestContext(request))
+    return render_to_response('djime/slip_index.html', {
+            'slip_list': Slip.objects.filter(user=request.user),
+            'slip_add_form': SlipForm()
+        }, context_instance=RequestContext(request))
+
+
+@login_required
+def time_sheet_index(request):
+    today = datetime.now()
+    if request.is_ajax():
+        json = ''
+        for slip in Slip.objects.filter(user=request.user,
+                            project=request.POST['project']).order_by('name'):
+            json += '<option value="%(id)s">%(name)s</option>' % {
+                                            'id': slip.id, 'name': slip.name}
+        return HttpResponse(json)
+    display_data = {
+        'slice_list': TimeSlice.objects.select_related().filter(
+                            user=request.user, begin__day=today.day,
+                            begin__month=today.month, begin__year=today.year),
+        'slip_add_form': SlipForm()
+    }
+    if request.method == 'GET':
+        display_data['timesheet_timeslice_form'] = TimeSliceSheetForm(request.user)
+    if request.method == 'POST':
+        form = TimeSliceSheetForm(request.user, request.POST)
+        if form.is_valid():
+            clean = form.cleaned_data
+            timeslice = TimeSlice(begin=datetime.now(),
+                                    duration=clean['duration'],
+                                    note=clean['note'],
+                                    slip=clean['slip'],
+                                    user=request.user)
+            timeslice.save()
+        else:
+            display_data['timesheet_timeslice_form'] = form
+    return render_to_response('djime/time_sheet_index.html', display_data,
+                                      context_instance=RequestContext(request))
+
 
 @login_required()
 def slip(request, slip_id):

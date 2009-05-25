@@ -11,8 +11,8 @@ $.getJSON('/project/json/', function(data) {
 
 $(document).ready(function () {
 	var container = $("#id_project").parent();
-	$("#id_project").autocomplete(djime.autocomplete_projectnames);
-	$("#id_project").keyup(function () {
+	$("#slip-add-form").find("#id_project").autocomplete(djime.autocomplete_projectnames)
+	.keyup(function () {
 		var i=0;
 		while (djime.autocomplete_projectnames[i]) {
 			if (String($("#id_project").val()) == djime.autocomplete_projectnames[i][0]) {
@@ -31,7 +31,7 @@ $(document).ready(function () {
 				container.show();
 				$("#id_project").remove();
 				container.append('<select id="id_project" name="project">' + djime.client_list[parseInt($("#id_client").val())] + '</select>');
-				project = $("#id_project");
+				project = $("#slip-add-form").find("#id_project");
 			}
 		}
 		else {
@@ -39,7 +39,7 @@ $(document).ready(function () {
 			$("#id_project").remove();
 			container.append('<input type="text" id="id_project" name="project" autocomplete="off" class="ac_input"/>');
 			$("#id_project").autocomplete(djime.autocomplete_projectnames);
-			project = $("#id_project");
+			project = $("#slip-add-form").find("#id_project");
 			$("#id_project").keyup(function () {
 				var i=0;
 				while (djime.autocomplete_projectnames[i]) {
@@ -53,7 +53,7 @@ $(document).ready(function () {
 	});
 
 	var name = $("#id_name"),
-		project = $("#id_project"),
+		project = $("#slip-add-form").find("#id_project"),
 		client = $("#id_client"),
 		allFields = $([]).add(name).add(project).add(client),
 		tips = $("#validateTips");
@@ -132,4 +132,13 @@ $(document).ready(function () {
 		tips.text('');
 		checkProject(project, project.val(), "Project does not exist.");
 	});
+	get_slip_data = function() {
+			$.post(document.URL, {'project': $("#id_project").val()}, function(data) {
+				$(".timesheet #id_slip").html(data).show();
+			});
+		}
+	$("#id_project").change(function () {
+		get_slip_data()
+	});
+	$("#id_project").trigger('change');
 });

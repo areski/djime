@@ -140,6 +140,10 @@ a:active {
 /* @end */
 
 /* @group Listings */
+.left {
+  position: center;
+  padding-right: 0.5em;
+}
 
 ul.item-list li a {
   border-top: 1px dashed #C2C8D1;
@@ -212,5 +216,3 @@ ul.item-list li span.elapsed-time {
   /* End hide from IE-mac */
 
 /* @end */
-
-
