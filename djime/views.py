@@ -32,8 +32,18 @@ def dashboard(request):
 
 @login_required
 def index(request):
+    slice_list = TimeSlice.objects.select_related('slip', 'slip__project', 'slip__project__client').filter(user=request.user)
+    slips = {}
+    for slice in slice_list:
+        if slice.slip not in slips.keys():
+            slips[slice.slip] = slice.duration
+        else:
+            slips[slice.slip] += slice.duration
+    slip_list = []
+    for slip in slips:
+        slip_list.append({slip: '%02i:%02i' % (slips[slip]/3600, slips[slip]%3600/60)})
     return render_to_response('djime/slip_index.html', {
-            'slip_list': Slip.objects.filter(user=request.user),
+            'slip_list': slip_list,
             'slip_add_form': SlipForm()
         }, context_instance=RequestContext(request))
 
