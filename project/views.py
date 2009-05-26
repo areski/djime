@@ -5,12 +5,14 @@ from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirec
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.template.loader import render_to_string
+from django.utils.translation import ugettext as trans
+from django.utils.html import escape
+
+from project.forms import ProjectUpdateForm, ProjectAddForm, ClientAddForm
 from project.models import Project, Client
 from teams.models import Team
-from djime.models import Slip
-from django.utils.translation import ugettext as trans
-from project.forms import ProjectUpdateForm, ProjectAddForm, ClientAddForm
-from django.utils.html import escape
+from djime.models import Slip, TimeSlice
+
 try:
     import json
 except ImportError:
@@ -55,53 +57,58 @@ def show_project(request, project_id):
     data = {
         'project': project,
     }
-    data['slip_all'] = Slip.objects.filter(project=project)
-    data['slip_user'] = data['slip_all'].filter(user=request.user)
-    data['slip_rest'] = data['slip_all'].exclude(user=request.user)
+    # We get the data we need based on TimeSlice so we can follow the
+    # foreignkeys we need to follow.
+    slice_all =  TimeSlice.objects.select_related('slip', 'user').filter(slip__project=project)
+    slip_user = {}
+    slip_rest = {}
 
     # Here duration for project's slips is calculated by iterating over all the
-    # slips and then over all the timeslices. This is repeated for the user's
-    # slips and the remaining slips in the project.
-    duration = 0
-    for slip in data['slip_all']:
-        seconds = 0
-        for slice in slip.timeslice_set.all():
-            seconds += slice.duration
-        duration += seconds
-    data['time_all'] ='%02i:%02i' % (duration/3600, duration%3600/60)
+    # timeslice. While asociating each timeslice to it's slip.
 
-    duration = 0
-    for slip in data['slip_user']:
-        seconds = 0
-        for slice in slip.timeslice_set.all():
-            seconds += slice.duration
-        duration += seconds
-    data['time_user'] ='%02i:%02i' % (duration/3600, duration%3600/60)
+    duration_all = 0
+    duration_user = 0
+    duration_rest = 0
+    for slice in slice_all:
+        duration_all += slice.duration
+        if slice.user == request.user:
+            duration_user += slice.duration
+            if slice.slip not in slip_user.keys():
+                slip_user[slice.slip] = slice.duration
+            else:
+                slip_user[slice.slip] += slice.duration
+        else:
+            duration_rest += slice.duration
+            if slice.slip not in slip_rest.keys():
+                slip_rest[slice.slip] = slice.duration
+            else:
+                slip_rest[slice.slip] += slice.duration
 
-    duration = 0
-    for slip in data['slip_rest']:
-        seconds = 0
-        for slice in slip.timeslice_set.all():
-            seconds += slice.duration
-        duration += seconds
-    data['time_other'] ='%02i:%02i' % (duration/3600, duration%3600/60)
+    # Formating the display of the time, to make it more human readable.
+    data['time_all'] ='%02i:%02i' % (duration_all/3600, duration_all%3600/60)
+    data['time_user'] ='%02i:%02i' % (duration_user/3600, duration_user%3600/60)
+    data['time_other'] ='%02i:%02i' % (duration_rest/3600, duration_rest%3600/60)
+    for slip in slip_user.keys():
+        slip_user[slip] = '%02i:%02i' % (slip_user[slip]/3600, slip_user[slip]%3600/60)
+    for slip in slip_rest.keys():
+        slip_rest[slip] = '%02i:%02i' % (slip_rest[slip]/3600, slip_rest[slip]%3600/60)
 
-    # run the user's slips through the slip_list template as a sting to create
-    # a list display of the slips as a template variable. This is repeated for
-    # the remaining slips in the project aswell.
+    # run the slips lists through the slip_list_improved template as a sting
+    # to create a list display of the slips as a template variable. This is
+    # repeated for the remaining slips in the project aswell.
     # Note, when the 10_paginate variable is set to TRUE, a pagination
     # displaying 10 items per page instead of the default 20.
-    if data['slip_user']:
-        data['user_list'] = render_to_string('djime/slip_list.html',
-                              {'slip_list': data['slip_user'], '10_paginate': True,
+    if slip_user:
+        data['user_list'] = render_to_string('djime/slip_list_improved.html',
+                              {'slip_list': slip_user, '10_paginate': True,
                                'list_exclude_project': True,
                                'list_exclude_client': True,
                               },
                               context_instance=RequestContext(request))
 
-    if data['slip_rest']:
-        data['other_list'] = render_to_string('djime/slip_list.html',
-                              {'slip_list': data['slip_rest'], '10_paginate': True,
+    if slip_rest:
+        data['other_list'] = render_to_string('djime/slip_list_improved.html',
+                              {'slip_list': slip_rest, '10_paginate': True,
                                'list_exclude_project': True,
                                'list_exclude_client': True,
                               },
