@@ -40,11 +40,11 @@ class TimeSliceForm(forms.Form):
         d = datetime.now()
         td = timedelta(hours=self.cleaned_data['duration'])
         # begin is from now - duration since I've done the work already.
-        model.begin = datetime.combine(self.cleaned_data['date'], d.time()) - td 
+        model.begin = datetime.combine(self.cleaned_data['date'], d.time()) - td
         # end is now 
         model.end = datetime.combine(self.cleaned_data['date'], d.time())
 
-        model.descrition = self.cleaned_data['description']
+        model.description = self.cleaned_data['description']
 
 
 class TimeSliceSheetForm(forms.Form):
@@ -66,13 +66,13 @@ class TimeSliceSheetForm(forms.Form):
             slip = Slip.objects.get(pk=int(self.cleaned_data['slip']))
         except Slip.DoesNotExist, ValueError:
             # This should never happen unless some one hacks the code.
-            raise forms.ValidationError(_('An unexpected error happened, please contact the site administration if the problem presists'))
+            raise forms.ValidationError(_('An unexpected error happened, please contact the system administration if the problem persists.'))
         return slip
 
     def clean_duration(self):
         duration_list = self.cleaned_data['duration'].split(':')
         if len(duration_list) > 2:
-            raise forms.ValidationError(_('You cannot enter time with two colons (:)'))
+            raise forms.ValidationError(_('You cannot enter time with two colons (:).'))
         try:
             hour = int(duration_list[0])
             if len(duration_list) > 1:
@@ -80,5 +80,6 @@ class TimeSliceSheetForm(forms.Form):
             else:
                 minute = 0
         except ValueError:
-            raise forms.ValidationError(_('You must enter duration formatted as a number: "2" or "1:15"'))
+            raise forms.ValidationError(_('You must enter duration formatted as a number: "2" or "1:15".'))
         return (hour * 60 + minute) * 60
+
