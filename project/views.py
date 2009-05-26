@@ -162,46 +162,62 @@ def show_client(request, client_id):
     data = {
         'client': client,
     }
-    projects = Project.objects.filter(client=client, members=request.user)
-    data['slip_all'] = Slip.objects.filter(project__in=projects)
-    data['slip_user'] = data['slip_all'].filter(user=request.user)
-    data['slip_rest'] = data['slip_all'].exclude(user=request.user)
-    duration = 0
-    for slip in data['slip_all']:
-        seconds = 0
-        for slice in slip.timeslice_set.all():
-            seconds += slice.duration
-        duration += seconds
-    data['time_all'] ='%02i:%02i' % (duration/3600, duration%3600/60)
-    duration = 0
-    for slip in data['slip_user']:
-        seconds = 0
-        for slice in slip.timeslice_set.all():
-            seconds += slice.duration
-        duration += seconds
-    data['time_user'] ='%02i:%02i' % (duration/3600, duration%3600/60)
-    duration = 0
-    for slip in data['slip_rest']:
-        seconds = 0
-        for slice in slip.timeslice_set.all():
-            seconds += slice.duration
-        duration += seconds
-    data['time_other'] ='%02i:%02i' % (duration/3600, duration%3600/60)
+    slice_all =  TimeSlice.objects.select_related('slip', 'user', 'slip__project').filter(slip__project__client=client)
+    slip_user = {}
+    slip_rest = {}
 
-    data['user_list'] = render_to_string('djime/slip_list.html',
-                              {'slip_list': data['slip_user'], '10_paginate': True,
-                              'list_exclude_client': True
+    # Here duration for project's slips is calculated by iterating over all the
+    # timeslice. While asociating each timeslice to it's slip.
+
+    duration_all = 0
+    duration_user = 0
+    duration_rest = 0
+    for slice in slice_all:
+        duration_all += slice.duration
+        if slice.user == request.user:
+            duration_user += slice.duration
+            if slice.slip.name not in slip_user.keys():
+                slip_user[slice.slip] = slice.duration
+            else:
+                slip_user[slice.slip] += slice.duration
+        else:
+            duration_rest += slice.duration
+            if slice.slip not in slip_rest.keys():
+                slip_rest[slice.slip] = slice.duration
+            else:
+                slip_rest[slice.slip] += slice.duration
+
+    # Formating the display of the time, to make it more human readable.
+    data['time_all'] ='%02i:%02i' % (duration_all/3600, duration_all%3600/60)
+    data['time_user'] ='%02i:%02i' % (duration_user/3600, duration_user%3600/60)
+    data['time_other'] ='%02i:%02i' % (duration_rest/3600, duration_rest%3600/60)
+    slip_user_list = []
+    slip_rest_list = []
+    for slip in slip_user.keys():
+        slip_user_list.append({slip: '%02i:%02i' % (slip_user[slip]/3600, slip_user[slip]%3600/60)})
+    for slip in slip_rest.keys():
+        slip_rest_list.append({slip: '%02i:%02i' % (slip_rest[slip]/3600, slip_rest[slip]%3600/60)})
+
+    # run the slips lists through the slip_list_improved template as a sting
+    # to create a list display of the slips as a template variable. This is
+    # repeated for the remaining slips in the project aswell.
+    # Note, when the 10_paginate variable is set to TRUE, a pagination
+    # displaying 10 items per page instead of the default 20.
+    if slip_user_list:
+        data['user_list'] = render_to_string('djime/slip_list_improved.html',
+                              {'slip_list': slip_user_list, '10_paginate': True,
+                               'list_exclude_project': True,
+                               'list_exclude_client': True,
                               },
                               context_instance=RequestContext(request))
 
-    data['other_list'] = render_to_string('djime/slip_list.html',
-                              {'slip_list': data['slip_rest'], '10_paginate': True,
-                              'list_exclude_client': True
+    if slip_rest_list:
+        data['other_list'] = render_to_string('djime/slip_list_improved.html',
+                              {'slip_list': slip_rest_list, '10_paginate': True,
+                               'list_exclude_project': True,
+                               'list_exclude_client': True,
                               },
                               context_instance=RequestContext(request))
-
-    data['project_list'] = client.project_set.filter(state__in=['active', 'on_hold'], members=request.user)
-
     return render_to_response('project/client.html', data,
                                       context_instance=RequestContext(request))
 
