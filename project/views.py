@@ -73,7 +73,7 @@ def show_project(request, project_id):
         duration_all += slice.duration
         if slice.user == request.user:
             duration_user += slice.duration
-            if slice.slip not in slip_user.keys():
+            if slice.slip.name not in slip_user.keys():
                 slip_user[slice.slip] = slice.duration
             else:
                 slip_user[slice.slip] += slice.duration
@@ -88,27 +88,29 @@ def show_project(request, project_id):
     data['time_all'] ='%02i:%02i' % (duration_all/3600, duration_all%3600/60)
     data['time_user'] ='%02i:%02i' % (duration_user/3600, duration_user%3600/60)
     data['time_other'] ='%02i:%02i' % (duration_rest/3600, duration_rest%3600/60)
+    slip_user_list = []
+    slip_rest_list = []
     for slip in slip_user.keys():
-        slip_user[slip] = '%02i:%02i' % (slip_user[slip]/3600, slip_user[slip]%3600/60)
+        slip_user_list.append({slip: '%02i:%02i' % (slip_user[slip]/3600, slip_user[slip]%3600/60)})
     for slip in slip_rest.keys():
-        slip_rest[slip] = '%02i:%02i' % (slip_rest[slip]/3600, slip_rest[slip]%3600/60)
+        slip_rest_list.append({slip: '%02i:%02i' % (slip_rest[slip]/3600, slip_rest[slip]%3600/60)})
 
     # run the slips lists through the slip_list_improved template as a sting
     # to create a list display of the slips as a template variable. This is
     # repeated for the remaining slips in the project aswell.
     # Note, when the 10_paginate variable is set to TRUE, a pagination
     # displaying 10 items per page instead of the default 20.
-    if slip_user:
+    if slip_user_list:
         data['user_list'] = render_to_string('djime/slip_list_improved.html',
-                              {'slip_list': slip_user, '10_paginate': True,
+                              {'slip_list': slip_user_list, '10_paginate': True,
                                'list_exclude_project': True,
                                'list_exclude_client': True,
                               },
                               context_instance=RequestContext(request))
 
-    if slip_rest:
+    if slip_rest_list:
         data['other_list'] = render_to_string('djime/slip_list_improved.html',
-                              {'slip_list': slip_rest, '10_paginate': True,
+                              {'slip_list': slip_rest_list, '10_paginate': True,
                                'list_exclude_project': True,
                                'list_exclude_client': True,
                               },
