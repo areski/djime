@@ -2,10 +2,7 @@
 Django context processors used within Djime.
 """
 from django.conf import settings
-from djime.models import Slip, TimeSlice
-
-def static_urls(request):
-    return {'STATIC_URL': settings.STATIC_URL}
+from djime.models import TimeSlice
 
 def statusbar(request):
     """
