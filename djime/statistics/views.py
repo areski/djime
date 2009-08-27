@@ -319,14 +319,12 @@ def user_billing(request, user_id):
 @login_required()
 def user_billing_weeks(request, user_id, date, number_of_weeks):
     user = get_object_or_404(User, pk=user_id)
-    if number_of_weeks > 5:
-        number_of_weeks = 4
     date_list = date.split('-')
     try:
         start_date = datetime.date(int(date_list[0]), int(date_list[1]), int(date_list[2]))
     except ValueError:
         return HttpResponse(_('Invalid date, must be yyyy-mm-dd'))
-    end_date = start_date + datetime.timedelta(days=number_of_weeks*7)
+    end_date = start_date + datetime.timedelta(days=int(number_of_weeks)*7)
     slice_set = TimeSlice.objects.filter(user=user, begin__range=(start_date, end_date))
     project_dict = {}
     for time_slice in slice_set:

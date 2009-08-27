@@ -44,7 +44,7 @@ class DateSelectionForm(forms.Form):
 
         # Lastly we check to see that the two dates are between 1 and
         # 60 days apart, and that the begin date is before the end date
-        if e_date - (s_date) > datetime.timedelta(days=60):
+        if e_date - (s_date) > datetime.timedelta(days=100):
             raise forms.ValidationError(_("Difference between end and start date must be lower than 60 days"))
         if e_date - (s_date) < datetime.timedelta(days=1):
             raise forms.ValidationError(_("End date must be after start date"))
