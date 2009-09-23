@@ -63,10 +63,14 @@ def timesheet_timeslice_handler(timeslices):
     timeslices = timeslices.order_by('task', 'note')
     result = []
     test = []
-    temp_slice = TimeSlice()
+    # create a timeslice that is different from the first timeslice.
+    # TODO: why does TimeSlice().task give strange error?
+    temp_slice = timeslices[0]
+    if not temp_slice.note:
+        temp_slice.note = 'a'
+    else:
+        temp_slice.note += 'a'
     for timeslice in timeslices:
-        print timeslice.note
-        print temp_slice.note
         if timeslice.note == temp_slice.note and timeslice.task == temp_slice.task:
             temp_slice.duration += timeslice.duration
         else:
