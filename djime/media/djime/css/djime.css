@@ -1,25 +1,21 @@
 /** table styles **/
-table.time-sheet td,
-table.my-tasks td {
+table.djime td {
     vertical-align: top;
     padding: 5px 20px 5px 5px;
 }
 
-table.time-sheet,
-table.my-tasks {
+table.djime {
     width: 100%;
 }
 
-table.time-sheet thead th,
-table.my-tasks thead th {
+table.djime thead th {
     background: #9BC;
     text-align: left;
     color: #FFF;
     padding: 5px 20px 5px 5px;
 }
 
-table.time-sheet tbody tr,
-table.my-tasks tbody tr {
+table.djime tbody tr {
     background: #DEF;
     color: #333;
     border-top: 1px solid #BCD;
@@ -40,11 +36,13 @@ table.my-tasks tbody tr {
 }
 
 /** my tasks page and table styles **/
-table.my-tasks tr.odd {
+table.my-tasks tr.odd,
+table.billing tr.odd {
   background-color: #DDDDDD;
 }
 
-table.my-tasks tr.even {
+table.my-tasks tr.even,
+table.billing tr.even {
   background-color: #EEEEEE;
 }
 

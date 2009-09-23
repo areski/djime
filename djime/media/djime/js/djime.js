@@ -1,16 +1,15 @@
-updateTasks = function() {
-  $.get('/time/json/project/' + $("#id_project").val(), function(data) {
-    $("#id_task").html(data);
-  });
-}
-
 $(document).ready(function () {
   $("#id_project").change(function() {
-    updateTasks();
+    if ($(this).parents("form").hasClass('billing')) {
+      get = {'get': 'all'}
+    }
+    else {
+      get = {'get': 'user'}
+    }
+    $.get('/time/json/project/' + $("#id_project").val(), get, function(data) {
+      $("#id_task").html(data);
+    });
   });
-  if ($("#id_project").val()){
-    updateTasks();
-  }
   $("tbody td.track span").click(function () {
 	  if ($(this).parents("td").hasClass('timer-added')) {
 	    // Timer is active, must stop the time and update

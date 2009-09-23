@@ -10,6 +10,7 @@
     <li><a href="{% url djime_timetrack %}">{% trans "Track time" %}</a></li>
     <li><a href="{% url djime_timesheet %}">{% trans "Timesheet" %}</a></li>
     <li><a href="{% url djime_index %}">{% trans "Your tasks" %}</a></li>
+    <li><a href="{% url djime_statistics_index %}">{% trans "Statictics" %}</a></li>
   </ul>
 </div>
 {% endblock %}
@@ -17,7 +18,7 @@
 {% block body %}
   <h2 class="title">{% trans "Tasks that have been assigned to you" %}</h2>
     {% if task_list %}
-      <table class="my-tasks table">
+      <table class="my-tasks djime">
         <thead>
           <tr>
             <th>{% trans "ID" %}</th>

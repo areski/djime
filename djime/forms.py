@@ -14,13 +14,19 @@ class TimeSliceBaseForm(forms.Form):
     def __init__(self, user, *args, **kwargs):
         super(TimeSliceBaseForm, self).__init__(*args, **kwargs)
         project_choices = []
+        task_choices = []
         for project in Project.objects.filter(member_users=user).order_by('name'):
             project_choices.append((project.id, project.name))
         self.fields['project'].choices = project_choices
+        if project_choices:
+            tasks = Task.objects.filter(object_id=project_choices[0][0])
+            for task in tasks:
+                task_choices.append((task.id, task.summary))
+        self.fields['task'].choices = task_choices
 
     note = forms.CharField(required=False, widget=forms.Textarea)
     project = forms.ChoiceField(required=False)
-    task = forms.CharField(required=False, widget=forms.Select)
+    task = forms.ChoiceField(required=False)
 
     def clean_task(self):
         try:

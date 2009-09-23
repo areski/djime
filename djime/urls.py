@@ -12,3 +12,4 @@ urlpatterns = patterns('djime.views',
     url(r'^ajax/task/(?P<task_id>\d+)/(?P<action>(start|stop|get_json))/$', 'task_action', name='djime_task_action'),
 )
 
+urlpatterns += patterns('djime.statistics.views', (r'^statistics/', include('djime.statistics.urls')))

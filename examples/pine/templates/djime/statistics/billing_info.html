@@ -1,0 +1,34 @@
+{% extends "djime/statistics/base.html" %}
+
+{% load i18n %}
+{% load slice_filter %}
+
+{% block body %}
+  <h2 class="title">{% trans "Billing information" %}</h2>
+    {% if timeslices %}
+      <table class="billing djime">
+        <thead>
+          <tr>
+            <th>{% trans "Time" %}</th>
+            <th>{% trans "Task" %}</th>
+            <th>{% trans "Project" %}</th>
+            <th>{% trans "Note" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for slice in timeslices %}
+            <tr class="{% cycle odd,even %}">
+              <td>{{ slice.duration|slice_time_display }}</td>
+              <td>{{ slice.task }}</td>
+              <td>{{ slice.task.group }}</td>
+              <td>{{ slice.note }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty">
+        <p>{% trans "No time have been tracked for the chosen criteria." %}</p>
+      </div>
+    {% endif %}
+{% endblock %}

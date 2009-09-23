@@ -1,0 +1,22 @@
+{% extends "djime/statistics/billing_base.html" %}
+
+{% load i18n %}
+{% load uni_form %}
+
+{% block head_title %}{% trans "Time - Billing" %}{% endblock %}
+
+{% block body %}
+  <h3>{% trans "Select the criteria for getting the billing information" %}</h3>
+  <form class="uniForm billing" action="" method="post">
+    <fieldset class="inlineLabels">
+      {{ billing_form|as_uni_form }}
+      <div class="form_block">
+        <input class="submit" type="submit" value="{% trans 'Get billing info' %}" />
+      </div>
+    </fieldset>
+  </form>
+{% endblock %}
+
+{% block extra_body %}
+<script type="text/javascript" src="{{ STATIC_URL }}djime/js/timesheet.js"></script>
+{% endblock %}

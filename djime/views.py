@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.utils.translation import ugettext as _
 
 from djime.models import TimeSlice, timesheet_timeslice_handler
 from djime.forms import TimeSliceSheetForm, TimesheetWeekForm
@@ -299,8 +300,13 @@ def task_action(request, task_id, action):
         pass
 
 def project_json(request, project_id):
-    tasks = Task.objects.filter(object_id=project_id).order_by('summary')
+    if int(project_id) == 0:
+        tasks = []
+    else:
+        tasks = Task.objects.filter(object_id=project_id).order_by('summary')
     json = ''
+    if request.GET.get('get') == 'all':
+        json += '<option value="0">%s</option>' % _('All Tasks')
     for task in tasks:
          json += '<option value="%(id)s">%(summary)s</option>' % {
                                                     'id': task.id,

@@ -1,0 +1,17 @@
+{% extends "djime/base.html" %}
+
+{% load i18n %}
+
+{% block subnav %}
+  <ul>
+    <il><a href="{% url djime_timesheet %}">{%trans "Today" %}</a></li>
+    <il><a href="{% url djime_this_wmqy_timesheet method="week" %}">{% trans "This week" %}</a></li>
+    <il><a href="{% url djime_this_wmqy_timesheet method="month" %}">{% trans "This month" %}</a></li>
+    <il><a href="{% url djime_this_wmqy_timesheet method="quarter" %}">{% trans "This quarter" %}</a></li>
+    <il><a href="{% url djime_this_wmqy_timesheet method="year" %}">{% trans "This year" %}</a></li>
+    <il><a href="{% url djime_select_timesheet %}">{% trans "Select date" %}</a></li>
+    {% if user.is_staff %}
+      <il><a href="{% url djime_statistics_billing_index %}">{% trans "Billing infomation" %}</a></li> 
+    {% endif %}
+  </ul>
+{% endblock %}
