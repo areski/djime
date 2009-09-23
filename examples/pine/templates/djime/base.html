@@ -4,6 +4,10 @@
 
 {% block body_class %}time{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ STATIC_URL }}djime/css/djime.css" />
+{% endblock %}
+
 {% block extra_body %}
 <script type="text/javascript" src="{{ STATIC_URL }}djime/js/djime.js"></script>
 {% endblock %}

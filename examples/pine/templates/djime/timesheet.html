@@ -1,7 +1,7 @@
 {% extends "djime/base.html" %}
 
 {% load i18n %}
-
+{% load uni_form %}
 {% load slice_filter %}
 
 {% block body %}
@@ -33,8 +33,12 @@
       </div>
     {% endif %}
   <h3 class="title">{% trans "Add a timeslice for today" %}</h3>
-    <form class="form timesheet" action="" method="post">
-      {{ timesheet_timeslice_form.as_p }}
-      <input class="submit" type="submit" value="{% trans 'Add a sheet' %}" />
-    </form>  
+    <form class="uniForm timesheet" action="" method="post">
+      <fieldset class="inlineLabels">
+        {{ timesheet_timeslice_form|as_uni_form }}
+        <div class="form_block">
+          <input class="submit" type="submit" value="{% trans 'Add a sheet' %}" />
+        </div>
+      </fieldset>
+    </form>
 {% endblock %}

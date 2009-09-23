@@ -1,0 +1,21 @@
+table.time-sheet td {
+    vertical-align: top;
+    padding: 5px 20px 5px 5px;
+}
+
+table.time-sheet {
+    width: 100%;
+}
+
+table.time-sheet thead th {
+    background: #9BC;
+    text-align: left;
+    color: #FFF;
+    padding: 5px 20px 5px 5px;
+}
+
+table.time-sheet tbody tr {
+    background: #DEF;
+    color: #333;
+    border-top: 1px solid #BCD;
+}
