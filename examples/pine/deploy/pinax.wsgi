@@ -1,4 +1,4 @@
-# pinax.wsgi is configured to live in projects/pine/deploy.
+# pinax.wsgi is configured to live in projects/djime-pine/deploy.
 
 import os
 import sys
@@ -13,7 +13,7 @@ from site import addsitedir
 sys.path.insert(0, abspath(join(dirname(__file__), "../../")))
 
 from django.conf import settings
-os.environ["DJANGO_SETTINGS_MODULE"] = "pine.settings"
+os.environ["DJANGO_SETTINGS_MODULE"] = "djime-pine.settings"
 
 sys.path.insert(0, join(settings.PINAX_ROOT, "apps"))
 sys.path.insert(0, join(settings.PROJECT_ROOT, "apps"))

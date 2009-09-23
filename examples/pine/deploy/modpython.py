@@ -5,7 +5,7 @@ import sys
 from os.path import abspath, dirname, join
 from site import addsitedir
 
-VIRTUALENV_BASE = "/Users/mikl/Work/Django/virtualenvs/pinax-dev"
+VIRTUALENV_BASE = "/Users/torp/Work/Django/virtualenvs/pinax"
 if not VIRTUALENV_BASE:
     raise Exception("VIRTUALENV_BASE is not set correctly.")
 
@@ -17,7 +17,7 @@ from django.core.handlers.modpython import ModPythonHandler
 
 class PinaxModPythonHandler(ModPythonHandler):
     def __call__(self, req):
-        # mod_python fakes the environ, and thus doesn't process SetEnv. 
+        # mod_python fakes the environ, and thus doesn't process SetEnv.
         # This fixes that. Django will call this again since there is no way
         # of overriding __call__ to just process the request.
         os.environ.update(req.subprocess_env)

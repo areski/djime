@@ -50,20 +50,33 @@ USE_I18N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-
-MEDIA_ROOT = os.path.join(os.path.dirname(__file__), "site_media")
+MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'site_media', 'media')
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
-MEDIA_URL = '/site_media/'
+MEDIA_URL = '/site_media/media/'
+
+# Absolute path to the directory that holds static files like app media.
+# Example: "/home/media/media.lawrence.com/apps/"
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'site_media', 'static')
+
+# URL that handles the static files like app media.
+# Example: "http://media.lawrence.com"
+STATIC_URL = '/site_media/static/'
+
+# Additional directories which hold static files
+STATICFILES_DIRS = (
+    ('djime-pine', os.path.join(PROJECT_ROOT, 'media')),
+    ('pinax', os.path.join(PINAX_ROOT, 'media', PINAX_THEME)),
+)
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = posixpath.join(MEDIA_URL, "admin/")
+ADMIN_MEDIA_PREFIX = posixpath.join(STATIC_URL, "admin/")
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '4!ddby)=nodx&sv5@wtc6sykd79m!-hz=p=d7&#c0h5(%@m*u$'
+SECRET_KEY = 'ks&e#h$yo26@v$_&hqxyyl4t8g)2#5b%@chgp_wey*hromxnvi'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -134,10 +147,10 @@ INSTALLED_APPS = (
     'attachments',
     'django_markup',
     'django_filters',
+    'staticfiles',
     
     # internal (for now)
     'basic_profiles',
-    'staticfiles',
     'account',
     'signup_codes',
     'about',
@@ -152,7 +165,7 @@ INSTALLED_APPS = (
 )
 
 ABSOLUTE_URL_OVERRIDES = {
-    "auth.user": lambda o: "/profiles/%s/" % o.username,
+    "auth.user": lambda o: "/profiles/profile/%s/" % o.username,
 }
 
 MARKUP_FILTER_FALLBACK = 'none'
@@ -177,11 +190,6 @@ CONTACT_EMAIL = "feedback@example.com"
 SITE_NAME = "Pinax"
 LOGIN_URL = "/account/login/"
 LOGIN_REDIRECT_URLNAME = "what_next"
-
-STATICFILES_EXTRA_MEDIA = (
-    ('pinax', os.path.join(PINAX_ROOT, 'media', PINAX_THEME)),
-    ('pine', os.path.join(PROJECT_ROOT, 'media')),
-)
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.
