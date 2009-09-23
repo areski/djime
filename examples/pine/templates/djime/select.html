@@ -1,0 +1,89 @@
+{% extends "djime/base.html" %}
+
+{% load i18n %}
+{% load uni_form %}
+
+{% block subnav %}
+  <ul>
+    <il><a href="{% url djime_timesheet %}">{%trans "Today" %}</a></li>
+    <il><a href="{% url djime_this_wmqy_timesheet method="week" %}">{%trans "This week" %}</a></li>
+    <il><a href="{% url djime_this_wmqy_timesheet method="month" %}">{%trans "This month" %}</a></li>
+    <il><a href="{% url djime_this_wmqy_timesheet method="quarter" %}">{%trans "This quarter" %}</a></li>
+    <il><a href="{% url djime_this_wmqy_timesheet method="year" %}">{%trans "This year" %}</a></li>
+    <il><a href="{% url djime_select_timesheet %}">{%trans "Select date" %}</a></li>
+  </ul>
+{% endblock %}
+
+{% block body %}
+  <h2 class="title">{% trans "Select the timesheet you want to view" %}</h2>
+  <h3 class="title">{% trans "Select type of selection" %}</h3>
+  <form class="uniForm" id="timesheet-select" action="" method="post">
+    <fieldset class="inlineLabels">
+      <input type="radio" name="timesheet" value="time-week" {{ week }} />{% trans "Week" %}
+      <input type="radio" name="timesheet" value="time-month" {{ month }} />{% trans "Month" %}
+      <input type="radio" name="timesheet" value="time-quarter" {{ quarter }} />{% trans "Quarter" %}
+      <input type="radio" name="timesheet" value="time-year" {{ year }} />{% trans "Year" %}
+      <input type="radio" name="timesheet" value="time-range" {{ custom }} />{% trans "Custom" %}
+    </fieldset>
+  </form>
+  <div class="time-week outer">
+    <h3 class="title">{% trans "Select week" %}</h3>
+    <form class="uniForm timesheet" action="" method="post">
+      <fieldset class="inlineLabels">
+        {{ timesheet_week_form|as_uni_form }}
+        <div class="form_block">
+          <input class="submit" type="submit" value="{% trans 'Get timesheet' %}" />
+        </div>
+      </fieldset>
+    </form>
+  </div>
+  <div class="time-month outer">  
+    <h3 class="title">{% trans "Select month" %}</h3>
+    <form class="uniForm timesheet" action="" method="post">
+      <fieldset class="inlineLabels">
+        {{ timesheet_month_form|as_uni_form }}
+        <div class="form_block">
+          <input class="submit" type="submit" value="{% trans 'Get timesheet' %}" />
+        </div>
+      </fieldset>
+    </form>
+  </div>
+  <div class="time-quarter outer">  
+    <h3 class="title">{% trans "Select quarter" %}</h3>
+    <form class="uniForm timesheet" action="" method="post">
+      <fieldset class="inlineLabels">
+        {{ timesheet_quarter_form|as_uni_form }}
+        <div class="form_block">
+          <input class="submit" type="submit" value="{% trans 'Get timesheet' %}" />
+        </div>
+      </fieldset>
+    </form>
+  </div>
+  <div class="time-year outer">  
+    <h3 class="title">{% trans "Select year" %}</h3>
+    <form class="uniForm timesheet" action="" method="post">
+      <fieldset class="inlineLabels">
+        {{ timesheet_year_form|as_uni_form }}
+        <div class="form_block">
+          <input class="submit" type="submit" value="{% trans 'Get timesheet' %}" />
+        </div>
+      </fieldset>
+    </form>
+  </div>
+  <div class="time-range outer">
+    <h3 class="title">{% trans "Select custom date range" %}</h3>
+    <form class="uniForm timesheet" action="" method="post">
+      <fieldset class="inlineLabels">
+        {{ timesheet_date_form|as_uni_form }}
+        <div class="form_block">
+          <input class="submit" type="submit" value="{% trans 'Get timesheet' %}" />
+        </div>
+      </fieldset>
+    </form>
+  </div>
+{% endblock %}
+
+{% block extra_body %}
+<script type="text/javascript" src="{{ STATIC_URL }}djime/js/timesheet.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}djime/js/jquery-ui-1.7.1.custom.min.js"></script>
+{% endblock %}

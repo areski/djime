@@ -19,3 +19,15 @@ table.time-sheet tbody tr {
     color: #333;
     border-top: 1px solid #BCD;
 }
+
+.subnav-one {
+  border-bottom: 1px solid #9BC;
+}
+
+.subnav-two {
+  background: #F0F7FF;
+}
+
+#ui-datepicker-div {
+  z-index: 1;
+}

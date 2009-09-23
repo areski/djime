@@ -4,8 +4,19 @@
 {% load uni_form %}
 {% load slice_filter %}
 
+{% block subnav %}
+  <ul>
+    <il><a href="{% url djime_timesheet %}">{%trans "Today" %}</a></li>
+    <il><a href="{% url djime_this_wmqy_timesheet method="week" %}">{%trans "This week" %}</a></li>
+    <il><a href="{% url djime_this_wmqy_timesheet method="month" %}">{%trans "This month" %}</a></li>
+    <il><a href="{% url djime_this_wmqy_timesheet method="quarter" %}">{%trans "This quarter" %}</a></li>
+    <il><a href="{% url djime_this_wmqy_timesheet method="year" %}">{%trans "This year" %}</a></li>
+    <il><a href="{% url djime_select_timesheet %}">{%trans "Select date" %}</a></li>
+  </ul>
+{% endblock %}
+
 {% block body %}
-  <h2 class="title">{% trans "Time sheet for today" %}</h2>
+  <h2 class="title">{% blocktrans %}Timesheet for {{ headline }}{% endblocktrans %}</h2>
     {% if slice_list %}
       <table class="time-sheet table">
         <thead>

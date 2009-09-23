@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from exceptions import ValueError
+import re
 
 from django import forms
 from django.db import models
@@ -18,7 +19,7 @@ class TimeSliceSheetForm(forms.Form):
             self.fields['project'].choices = project_choices
 
     duration = forms.CharField(required=True)
-    note = forms.CharField(required=False)
+    note = forms.CharField(required=False, widget=forms.Textarea)
     project = forms.ChoiceField(required=False)
     task = forms.CharField(required=False, widget=forms.Select)
 
@@ -43,3 +44,54 @@ class TimeSliceSheetForm(forms.Form):
         except ValueError:
             raise forms.ValidationError(_('You must enter duration formatted as a number: "2" or "1:15".'))
         return (hour * 60 + minute) * 60
+
+class TimesheetWeekForm(forms.Form):
+    week = forms.IntegerField(required=True)
+    year = forms.IntegerField(required=True, initial=datetime.today().year)
+
+class TimesheetMonthForm(forms.Form):
+    month = forms.IntegerField(required=True)
+    year = forms.IntegerField(required=True, initial=datetime.today().year)
+
+class TimesheetQuarterForm(forms.Form):
+    quarter = forms.IntegerField(required=True)
+    year = forms.IntegerField(required=True, initial=datetime.today().year)
+
+class TimesheetYearForm(forms.Form):
+    year = forms.IntegerField(required=True, initial=datetime.today().year)
+
+class TimesheetDateForm(forms.Form):
+    begin = forms.CharField(required=True)
+    end = forms.CharField(required=True)
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        start_date = cleaned_data.get("begin", '')
+        end_date = cleaned_data.get("end", '')
+        # use regular expression to check if the user has entered the date in
+        # the format 'yyyy-mm-dd'
+        if start_date and not re.match("[0-9]{4}[-]{1}[0-9]{2}[-]{1}[0-9]{2}$", start_date):
+            raise forms.ValidationError(_("Start date has invalid format, must be 'yyyy-mm-dd'"))
+
+        if end_date and not re.match("[0-9]{4}[-]{1}[0-9]{2}[-]{1}[0-9]{2}$", end_date):
+            raise forms.ValidationError(_("End date has invalid format, must be 'yyyy-mm-dd'"))
+
+        if not start_date or not end_date:
+            return cleaned_data
+        # since re test passed, the dates can now be splitted by the
+        # dash to create a list with the year, month and day.
+        start = start_date.split('-')
+        end = end_date.split('-')
+
+        # using try and catching ValueError to check if the user has
+        # entered an invalid date like Feb 31 or Jan 55 ect.
+        try:
+            s_date = date(int(start[0]),int(start[1]),int(start[2]))
+        except ValueError:
+            raise forms.ValidationError(_("Start date does not exist"))
+        try:
+            e_date = date(int(end[0]),int(end[1]),int(end[2]))
+        except ValueError:
+            raise forms.ValidationError(_("End date does not exist"))
+
+        return cleaned_data

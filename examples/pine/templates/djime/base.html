@@ -6,6 +6,18 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ STATIC_URL }}djime/css/djime.css" />
+<link rel="stylesheet" href="{{ STATIC_URL }}djime/css/ui.core.css" />
+<link rel="stylesheet" href="{{ STATIC_URL }}djime/css/ui.theme.css" />
+<link rel="stylesheet" href="{{ STATIC_URL }}djime/css/ui.datepicker.css" />
+{% endblock %}
+
+{% block subnav_base %}
+  <div class="clearfix subnav-one">
+    <ul>
+      <li><a href="{% url djime_timesheet %}">{% trans "Timesheet" %}</a></li>
+    </ul>
+  </div>
+  <div class="clearfix subnav-two">{% block subnav %}&nbsp;{% endblock %}</div>
 {% endblock %}
 
 {% block extra_body %}
