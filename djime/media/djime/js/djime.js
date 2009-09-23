@@ -15,6 +15,7 @@ $(document).ready(function () {
 	  if ($(this).parents("td").hasClass('timer-added')) {
 	    // Timer is active, must stop the time and update
 	    $(this).parents("td").removeClass('timer-added').end()
+	      .parents("tr").removeClass('timer-added').end()
 	      .timeclock('destroy');
 	    $("#task-timer-sidebar-button").timeclock('destroy');
 	    $.post('/time/ajax/task/' + $(this).attr('class').match(/^\d+/)[0] + '/stop/');
@@ -24,8 +25,11 @@ $(document).ready(function () {
 	  }
 	  else {
 	    // timer is inactive must stop the active and remove classes.
-	    $("tbody td.timer-added").removeClass('timer-added').find("span").timeclock('destroy');
+	    $("tbody tr.timer-added").removeClass('timer-added')
+	      .find("td.timer-added").removeClass('timer-added')
+	      .find("span").timeclock('destroy');
 	    $(this).parents("td").addClass('timer-added').end()
+	      .parents("tr").addClass('timer-added').end()
 	      .timeclock();
 	    $("#task-timer-sidebar-button").timeclock('destroy').timeclock();
 	    $.post('/time/ajax/task/' + $(this).attr('class').match(/^\d+/)[0] + '/start/');
@@ -39,7 +43,8 @@ $(document).ready(function () {
 	// Add active timeclock if task is in the table.
 	if (djime.task_statusbar_id) {
 	  $("tbody td.track span." + djime.task_statusbar_id).timeclock({since: djime.current_time})
-	    .parents("td").addClass('timer-added');
+	    .parents("td").addClass('timer-added').end()
+	    .parents("tr").addClass('timer-added');
 	}
 });
 

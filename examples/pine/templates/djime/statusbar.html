@@ -1,32 +1,33 @@
 {% load i18n %}
 
-<div id="djime-statusbar" class="block">
+<div id="djime-statusbar" class="clearfix">
   <h3>Current status</h3>
   <div class="content">
     {% if djime %}
       <p class="task">Task: <span>{{ djime.slice.task.summary }}</span></p>
       <p class="project"> Project: <span>{{ djime.slice.task.group }}</span></p>
       <p class="total-time">Total time: <span>{{ djime.slice.task.display_time }}</span></p>
-      <div id="task-timer-sidebar-button" class="{{ djime.class }}"><div class="timeclock">0:00</div></div>
-      {% if not djime.slice.duration %}
-      <script type="text/javascript">
-        tz_date = new Date()
-        djime.current_time = new Date({{ djime.time.year }}, {{ djime.time.month }}, {{ djime.time.day }}, {{ djime.time.hour }} - tz_date.getTimezoneOffset()/60, {{ djime.time.minute }}, {{ djime.time.second }});
-        djime.task_statusbar_id = {{ djime.slice.task.id }}
-        djime.task_statusbar_name = '{{ djime.slice.task }}'
-        {% if task %}
-          djime.task_page_id = {{ task.id }}
-          djime.task_page_name = '{{ task }}'
-        {% endif %}
-      </script>
+    </div>
+    <div id="task-timer-sidebar-button" class="{{ djime.class }}"><div class="timeclock">0:00</div>
+    {% if not djime.slice.duration %}
+    <script type="text/javascript">
+      tz_date = new Date()
+      djime.current_time = new Date({{ djime.time.year }}, {{ djime.time.month }}, {{ djime.time.day }}, {{ djime.time.hour }} - tz_date.getTimezoneOffset()/60, {{ djime.time.minute }}, {{ djime.time.second }});
+      djime.task_statusbar_id = {{ djime.slice.task.id }}
+      djime.task_statusbar_name = '{{ djime.slice.task }}'
+      {% if task %}
+        djime.task_page_id = {{ task.id }}
+        djime.task_page_name = '{{ task }}'
       {% endif %}
+    </script>
+    {% endif %}
     {% else %}
       <p>{% trans "You have no active task." %}</p>
       {% if task %}
-      <script>
-        djime.task_page_id = {{ task.id }}
-        djime.task_page_name = '{{ task }}'
-      </script>
+        <script>
+          djime.task_page_id = {{ task.id }}
+          djime.task_page_name = '{{ task }}'
+        </script>
       {% endif %}
     {% endif %}
   </div>

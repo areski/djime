@@ -1,25 +1,31 @@
-table.time-sheet td {
+/** table styles **/
+table.time-sheet td,
+table.my-tasks td {
     vertical-align: top;
     padding: 5px 20px 5px 5px;
 }
 
-table.time-sheet {
+table.time-sheet,
+table.my-tasks {
     width: 100%;
 }
 
-table.time-sheet thead th {
+table.time-sheet thead th,
+table.my-tasks thead th {
     background: #9BC;
     text-align: left;
     color: #FFF;
     padding: 5px 20px 5px 5px;
 }
 
-table.time-sheet tbody tr {
+table.time-sheet tbody tr,
+table.my-tasks tbody tr {
     background: #DEF;
     color: #333;
     border-top: 1px solid #BCD;
 }
 
+/** navigation styles **/
 .subnav-one {
   border-bottom: 1px solid #9BC;
 }
@@ -28,6 +34,54 @@ table.time-sheet tbody tr {
   background: #F0F7FF;
 }
 
+/** datepicker styles **/
 #ui-datepicker-div {
   z-index: 1;
+}
+
+/** my tasks page and table styles **/
+table.my-tasks tr.odd {
+  background-color: #DDDDDD;
+}
+
+table.my-tasks tr.even {
+  background-color: #EEEEEE;
+}
+
+table.my-tasks tr.timer-added {
+  background: #DEF;
+}
+
+/** statusbar styles **/
+#djime-statusbar .content {
+  width: 49%;
+  float: left;
+}
+
+#task-timer-sidebar-button {
+  width: 49%;
+  float: left;
+  margin-top: 0.5em;
+  background-color: #007BA7;
+  font-size: 250%;
+  padding: 0.25em 0.5em;
+  text-indent: 2em;
+  width: 138px;
+  color: white;
+  -moz-border-radius-bottomleft:25px;
+  -moz-border-radius-bottomright:25px;
+  -moz-border-radius-topleft:25px;
+  -moz-border-radius-topright:25px;
+  -webkit-border-radius-bottomleft:25px;
+  -webkit-border-radius-bottomright:25px;
+  -webkit-border-radius-topleft:25px;
+  -webkit-border-radius-topright:25px;
+}
+
+#task-timer-sidebar-button.tock span.sep-hours {
+  color: #007BA7;
+}
+
+tr.timer-added span.hasTimeClock.tock span.sep-hours {
+  color: #DEF;
 }
