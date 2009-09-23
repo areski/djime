@@ -57,3 +57,20 @@ class DataImport(models.Model):
     complete_data = models.FileField(upload_to='import_data/complete/%Y/%m/', verbose_name=_('complete data'))
     partial_data = models.FileField(upload_to='import_data/partial/%Y/%m/', verbose_name=_('partial data'))
 
+def timesheet_timeslice_handler(timeslices):
+    if not timeslices:
+        return timeslices
+    timeslices = timeslices.order_by('task', 'note')
+    result = []
+    test = []
+    temp_slice = TimeSlice()
+    for timeslice in timeslices:
+        print timeslice.note
+        print temp_slice.note
+        if timeslice.note == temp_slice.note and timeslice.task == temp_slice.task:
+            temp_slice.duration += timeslice.duration
+        else:
+            result.append(temp_slice)
+            temp_slice = timeslice
+    result.append(temp_slice)
+    return result[1:]

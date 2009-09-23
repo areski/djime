@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 
-from djime.models import TimeSlice
+from djime.models import TimeSlice, timesheet_timeslice_handler
 from djime.forms import TimeSliceSheetForm, TimesheetWeekForm
 from djime.forms import TimesheetMonthForm, TimesheetQuarterForm
 from djime.forms import TimesheetYearForm, TimesheetDateForm
@@ -118,7 +118,7 @@ def timesheet(request, method=None, year=None, method_value=0, group_slug=None, 
 
 
     return render_to_response(template_name, {
-        'slice_list': timeslices,
+        'slice_list': timesheet_timeslice_handler(timeslices),
         'timesheet_timeslice_form': form,
         'headline': headline
     }, context_instance=RequestContext(request))
@@ -131,6 +131,7 @@ def project_json(request, project_id):
                                             'id': task.id, 'summary': task.summary}
     return HttpResponse(json)
 
+@login_required
 def timesheet_select_form(request, group_slug=None, template_name="djime/select.html", bridge=None):
     timesheet_week_form = TimesheetWeekForm()
     timesheet_month_form = TimesheetMonthForm()
@@ -186,6 +187,7 @@ def timesheet_select_form(request, group_slug=None, template_name="djime/select.
         variable: 'checked="checked"',
     }, context_instance=RequestContext(request))
 
+@login_required
 def timesheet_date(request, end_date, start_date, group_slug=None, template_name="djime/timesheet.html", bridge=None):
     if request.method == 'GET':
         form = TimeSliceSheetForm(request.user)
@@ -209,7 +211,7 @@ def timesheet_date(request, end_date, start_date, group_slug=None, template_name
                                 begin__range=(s_date, e_date))
 
     return render_to_response(template_name, {
-        'slice_list': timeslices,
+        'slice_list': timesheet_timeslice_handler(timeslices),
         'timesheet_timeslice_form': form,
         'headline': headline
     }, context_instance=RequestContext(request))

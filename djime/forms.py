@@ -14,7 +14,7 @@ class TimeSliceSheetForm(forms.Form):
     def __init__(self, user, *args, **kwargs):
             super(TimeSliceSheetForm, self).__init__(*args, **kwargs)
             project_choices = []
-            for project in Project.objects.select_related().filter(members=user).order_by('name'):
+            for project in Project.objects.filter(member_users=user).order_by('name'):
                 project_choices.append((project.id, project.name))
             self.fields['project'].choices = project_choices
 
