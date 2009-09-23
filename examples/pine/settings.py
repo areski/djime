@@ -161,6 +161,7 @@ INSTALLED_APPS = (
     'projects',
     'tasks',
     'topics',
+    'djime',
 
 )
 

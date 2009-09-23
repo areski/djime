@@ -1,0 +1,40 @@
+{% extends "djime/base.html" %}
+
+{% load i18n %}
+
+{% load slice_filter %}
+
+{% block body %}
+  <h2 class="title">{% trans "Time sheet for today" %}</h2>
+    {% if slice_list %}
+      <table class="time-sheet table">
+        <thead>
+          <tr>
+            <th>{% trans "Time" %}</th>
+            <th>{% trans "Task" %}</th>
+            <th>{% trans "Project" %}</th>
+            <th>{% trans "Note" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for slice in slice_list %}
+            <tr>
+              <td>{{ slice.duration|slice_time_display }}</td>
+              <td>{{ slice.task }}</td>
+              <td>{{ slice.task.group }}</td>
+              <td>{{ slice.note }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty">
+        <p>{% trans "No timeslice has been recorded by you today" %}</p>
+      </div>
+    {% endif %}
+  <h3 class="title">{% trans "Add a timeslice for today" %}</h3>
+    <form class="form timesheet" action="" method="post">
+      {{ timesheet_timeslice_form.as_p }}
+      <input class="submit" type="submit" value="{% trans 'Add a sheet' %}" />
+    </form>  
+{% endblock %}
