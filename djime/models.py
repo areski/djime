@@ -27,7 +27,7 @@ class TimeSlice(models.Model):
     def __unicode__(self):
         return _('From %(begin)s') % {'begin': self.begin}
 
-    def calculate_duration(self, end=datetime.datetime.utcnow(), force=False):
+    def calculate_duration(self, end=None, force=False):
         """
         Calculate the duration of the time slice.
 
@@ -40,6 +40,8 @@ class TimeSlice(models.Model):
         force -- force the duration to be recalculated (default False)
 
         """
+        if not end:
+            end = datetime.datetime.utcnow()
         if self.duration is None or force is True:
             self.duration = delta_to_seconds(end - self.begin)
 
