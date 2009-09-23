@@ -4,8 +4,8 @@
   <h3>Current status</h3>
   <div class="content">
     {% if djime %}
-      <p class="task">Task: {{ djime.slice.task.summary }}</p>
-      <p class="project"> Project: {{ djime.slice.task.group }}</p>
+      <p class="task">Task: <span>{{ djime.slice.task.summary }}</span></p>
+      <p class="project"> Project: <span>{{ djime.slice.task.group }}</span></p>
       <p class="total-time">Total time: <span>{{ djime.slice.task.display_time }}</span></p>
       <div id="task-timer-sidebar-button" class="{{ djime.class }}"><div class="timeclock">0:00</div></div>
       {% if not djime.slice.duration %}

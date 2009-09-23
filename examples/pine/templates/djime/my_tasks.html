@@ -1,0 +1,51 @@
+{% extends "djime/base.html" %}
+
+{% load i18n %}
+{% load shorttimesince_tag %}
+{% load group_tags %}
+
+{% block subnav_base %}
+<div class="clearfix">
+  <ul>
+    <li><a href="{% url djime_timetrack %}">{% trans "Track time" %}</a></li>
+    <li><a href="{% url djime_timesheet %}">{% trans "Timesheet" %}</a></li>
+    <li><a href="{% url djime_index %}">{% trans "Your tasks" %}</a></li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block body %}
+  <h2 class="title">{% trans "Tasks that have been assigned to you" %}</h2>
+    {% if task_list %}
+      <table class="time-sheet table">
+        <thead>
+          <tr>
+            <th>{% trans "ID" %}</th>
+            <th>{% trans "Summary" %}</th>
+            <th>{% trans "Last Modified" %}</th>
+            <th>{% trans "Tags" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "Time" %}</th>
+            <th>{% trans "Track time" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for task in task_list %}
+            <tr class="{% cycle odd,even %} task">
+              <td>{{ task.id }}</td>
+              <td><a href="{% groupurl task_detail task.group id=task.id %}">{{ task.summary }}</a></td>
+              <td>{% blocktrans with task.modified|shorttimesince as time %} {{ time }} ago{% endblocktrans %}</td>
+              <td>{{ task.tags }}</td>
+              <td>{{ task.status }}</td>
+              <td>{{ task.display_time }}</td>
+              <td class="track"><span class="{{ task.id }}">Click</span>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty">
+        <p>{% trans "You don't have any assigned tasks" %}</p>
+      </div>
+    {% endif %}
+{% endblock %}
