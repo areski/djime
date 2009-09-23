@@ -47,7 +47,8 @@ class BillingSelectionForm(forms.Form):
                 if project:
                     return project[0].id
                 else:
-                    raise forms.ValidationError(_('Selected project is not a valid'))
+                    raise forms.ValidationError(_('Selected project is not \
+                                                                    valid'))
 
     def clean_task(self):
         """
@@ -62,7 +63,8 @@ class BillingSelectionForm(forms.Form):
                 if tasks:
                     return tasks[0].id
                 else:
-                    raise forms.ValidationError(_('Selected task is not a valid'))
+                    raise forms.ValidationError(_('Selected task is not \
+                                                                    valid'))
 
     def clean_user(self):
         """
@@ -77,13 +79,16 @@ class BillingSelectionForm(forms.Form):
                 if users:
                     return users[0].id
                 else:
-                    raise forms.ValidationError(_('Selected user is not a valid'))
+                    raise forms.ValidationError(_('Selected user is not \
+                                                                    valid'))
 
     def clean_begin(self):
         start_date = self.cleaned_data.get("begin", '')
         if start_date:
-            if start_date and not re.match("[0-9]{4}[-]{1}[0-9]{2}[-]{1}[0-9]{2}$", start_date):
-                raise forms.ValidationError(_("Begin date has invalid format, must be 'yyyy-mm-dd'"))
+            if start_date and not re.match(
+                        "[0-9]{4}[-]{1}[0-9]{2}[-]{1}[0-9]{2}$", start_date):
+                raise forms.ValidationError(_("Begin date has invalid \
+                                            format, must be 'yyyy-mm-dd'"))
             start = start_date.split('-')
             try:
                 s_date = date(int(start[0]),int(start[1]),int(start[2]))
@@ -95,8 +100,10 @@ class BillingSelectionForm(forms.Form):
     def clean_end(self): 
         end_date = self.cleaned_data.get("end", '')
         if end_date:
-            if end_date and not re.match("[0-9]{4}[-]{1}[0-9]{2}[-]{1}[0-9]{2}$", end_date):
-                raise forms.ValidationError(_("End date has invalid format, must be 'yyyy-mm-dd'"))
+            if end_date and not re.match(
+                        "[0-9]{4}[-]{1}[0-9]{2}[-]{1}[0-9]{2}$", end_date):
+                raise forms.ValidationError(_("End date has invalid format, \
+                                                    must be 'yyyy-mm-dd'"))
             end = end_date.split('-')
             try:
                 e_date = date(int(end[0]),int(end[1]),int(end[2]))
@@ -115,7 +122,8 @@ class BillingSelectionForm(forms.Form):
             end = end_date.split('-')
             e_date = date(int(end[0]),int(end[1]),int(end[2]))
             if (e_date - s_date) < timedelta(days=0):
-                raise forms.ValidationError(_("Begin date must be before end date"))
+                raise forms.ValidationError(_("Begin date must be before end \
+                                                                    date"))
         return cleaned_data
 
 class DateSelectionForm(forms.Form):
@@ -128,17 +136,21 @@ class DateSelectionForm(forms.Form):
         # something space.
         date_list = date_data.split()
         if len(date_list) != 3:
-            raise forms.ValidationError(_("You have to enter 2 dates, in the date field, seperated by SPACE and a DASH (-) and a SPACE. Hint, use the date picker provided"))
+            raise forms.ValidationError(_("You have to enter 2 dates, in the \
+                        date field, seperated by SPACE and a DASH (-) and \
+                        a SPACE. Hint, use the date picker provided"))
         # start and end dates are set from the date list.
         start_date = date_list[0]
         end_date = date_list[-1]
         # use regular expression to check if the user has entered the date in
         # the format 'yyyy-mm-dd'
         if not re.match("[0-9]{4}[-]{1}[0-9]{2}[-]{1}[0-9]{2}$", start_date):
-            raise forms.ValidationError(_("Start date has invalid format, must be 'yyyy-mm-dd'"))
+            raise forms.ValidationError(_("Start date has invalid format, \
+                                                    must be 'yyyy-mm-dd'"))
 
         if not re.match("[0-9]{4}[-]{1}[0-9]{2}[-]{1}[0-9]{2}$", end_date):
-            raise forms.ValidationError(_("Start date has invalid format, must be 'yyyy-mm-dd'"))
+            raise forms.ValidationError(_("Start date has invalid format, \
+                                                    must be 'yyyy-mm-dd'"))
 
         # since re test passed, the dates can now be splitted by the
         # dash to create a list with the year, month and day.
@@ -159,7 +171,8 @@ class DateSelectionForm(forms.Form):
         # Lastly we check to see that the two dates are between 1 and
         # 60 days apart, and that the begin date is before the end date
         if e_date - (s_date) > datetime.timedelta(days=60):
-            raise forms.ValidationError(_("Difference between end and start date must be lower than 60 days"))
+            raise forms.ValidationError(_("Difference between end and start \
+                                            date must be lower than 60 days"))
         if e_date - (s_date) < datetime.timedelta(days=1):
             raise forms.ValidationError(_("End date must be after start date"))
 

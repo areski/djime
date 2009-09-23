@@ -15,7 +15,8 @@ class TimeSliceBaseForm(forms.Form):
         super(TimeSliceBaseForm, self).__init__(*args, **kwargs)
         project_choices = []
         task_choices = []
-        for project in Project.objects.filter(member_users=user).order_by('name'):
+        for project in Project.objects.filter(member_users=user).order_by(
+                                                                    'name'):
             project_choices.append((project.id, project.name))
         self.fields['project'].choices = project_choices
         if project_choices:
@@ -33,7 +34,9 @@ class TimeSliceBaseForm(forms.Form):
             task = Task.objects.get(pk=int(self.cleaned_data['task']))
         except Task.DoesNotExist, ValueError:
             # This should never happen unless some one hacks the code.
-            raise forms.ValidationError(_('An unexpected error happened, please contact the system administration if the problem persists.'))
+            raise forms.ValidationError(_('An unexpected error happened, \
+                                    please contact the system administration \
+                                    if the problem persists.'))
         return task
 
 class TimeSliceSheetForm(TimeSliceBaseForm):
@@ -45,7 +48,8 @@ class TimeSliceSheetForm(TimeSliceBaseForm):
     def clean_duration(self):
         duration_list = self.cleaned_data['duration'].split(':')
         if len(duration_list) > 2:
-            raise forms.ValidationError(_('You cannot enter time with two colons (:).'))
+            raise forms.ValidationError(_('You cannot enter time with two \
+                                                                colons (:).'))
         try:
             hour = int(duration_list[0])
             if len(duration_list) > 1:
@@ -53,7 +57,8 @@ class TimeSliceSheetForm(TimeSliceBaseForm):
             else:
                 minute = 0
         except ValueError:
-            raise forms.ValidationError(_('You must enter duration formatted as a number: "2" or "1:15".'))
+            raise forms.ValidationError(_('You must enter duration formatted \
+                                                as a number: "2" or "1:15".'))
         return (hour * 60 + minute) * 60
 
 class TimesheetWeekForm(forms.Form):
@@ -81,11 +86,15 @@ class TimesheetDateForm(forms.Form):
         end_date = cleaned_data.get("end", '')
         # use regular expression to check if the user has entered the date in
         # the format 'yyyy-mm-dd'
-        if start_date and not re.match("[0-9]{4}[-]{1}[0-9]{2}[-]{1}[0-9]{2}$", start_date):
-            raise forms.ValidationError(_("Start date has invalid format, must be 'yyyy-mm-dd'"))
+        if start_date and not re.match("[0-9]{4}[-]{1}[0-9]{2}[-]{1}[0-9]{2}$",
+                                                                start_date):
+            raise forms.ValidationError(_("Start date has invalid format, \
+                                                    must be 'yyyy-mm-dd'"))
 
-        if end_date and not re.match("[0-9]{4}[-]{1}[0-9]{2}[-]{1}[0-9]{2}$", end_date):
-            raise forms.ValidationError(_("End date has invalid format, must be 'yyyy-mm-dd'"))
+        if end_date and not re.match("[0-9]{4}[-]{1}[0-9]{2}[-]{1}[0-9]{2}$",
+                                                                    end_date):
+            raise forms.ValidationError(_("End date has invalid format, \
+                                                    must be 'yyyy-mm-dd'"))
 
         if not start_date or not end_date:
             return cleaned_data

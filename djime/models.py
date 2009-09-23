@@ -31,15 +31,16 @@ class TimeSlice(models.Model):
         """
         Calculate the duration of the time slice.
 
-        Normally used when ending the slice, this method will not perform
-        any changes if the slice already has a duration set, unless the
-        force parameter is True.
+        Normally used when ending the slice, this method will not
+        perform any changes if the slice already has a duration set,
+        unless the force parameter is True.
 
         Keyword arguments:
         end -- datetime object for the end (default datetime.datetime.utcnow())
         force -- force the duration to be recalculated (default False)
 
         """
+        # To avoid caching problems, end value is set here.
         if not end:
             end = datetime.datetime.utcnow()
         if self.duration is None or force is True:
@@ -49,8 +50,8 @@ class DataImport(models.Model):
     """
     The DataImport model is used when importing data into Djime.
 
-    It serves as storage and some sort of permanent record of the changes
-    made by an import of data from another system.
+    It serves as storage and some sort of permanent record of the
+    changes made by an import of data from another system.
 
     """
     user = models.ForeignKey(User, verbose_name=_('user'))

@@ -206,7 +206,8 @@ def billing_index(request, group_slug=None, template_name="djime/statistics/bill
                 'begin': cd['begin'],
                 'end': cd['end'],
             }
-            return HttpResponseRedirect(reverse('djime_statistics_billing_show', kwargs=rd))
+            return HttpResponseRedirect(reverse(
+                                'djime_statistics_billing_show', kwargs=rd))
     return render_to_response(template_name, {'billing_form': form},
                         context_instance=RequestContext(request))
 

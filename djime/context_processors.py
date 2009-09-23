@@ -12,11 +12,19 @@ def statusbar(request):
     """
     templatevars = {}
     if request.user.is_authenticated():
-        current_slice = TimeSlice.objects.filter(duration=None, user=request.user)[:1]
+        current_slice = TimeSlice.objects.filter(duration=None,
+                                                        user=request.user)[:1]
         if current_slice:
             # Unpack the QuerySet to get the model object.
             cslice = current_slice[0]
-            slice_time = {'year': cslice.begin.year, 'month': cslice.begin.month-1, 'day': cslice.begin.day, 'hour': cslice.begin.hour, 'minute': cslice.begin.minute, 'second': cslice.begin.second}
+            slice_time = {
+                'year': cslice.begin.year,
+                'month': cslice.begin.month-1,
+                'day': cslice.begin.day,
+                'hour': cslice.begin.hour,
+                'minute': cslice.begin.minute,
+                'second': cslice.begin.second
+            }
             templatevars['djime'] = {
                 'slice': cslice,
                 'time': slice_time,
