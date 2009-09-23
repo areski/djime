@@ -10,15 +10,14 @@ from djime.models import TimeSlice
 from tasks.models import Task
 from projects.models import Project
 
-class TimeSliceSheetForm(forms.Form):
+class TimeSliceBaseForm(forms.Form):
     def __init__(self, user, *args, **kwargs):
-            super(TimeSliceSheetForm, self).__init__(*args, **kwargs)
-            project_choices = []
-            for project in Project.objects.filter(member_users=user).order_by('name'):
-                project_choices.append((project.id, project.name))
-            self.fields['project'].choices = project_choices
+        super(TimeSliceBaseForm, self).__init__(*args, **kwargs)
+        project_choices = []
+        for project in Project.objects.filter(member_users=user).order_by('name'):
+            project_choices.append((project.id, project.name))
+        self.fields['project'].choices = project_choices
 
-    duration = forms.CharField(required=True)
     note = forms.CharField(required=False, widget=forms.Textarea)
     project = forms.ChoiceField(required=False)
     task = forms.CharField(required=False, widget=forms.Select)
@@ -31,6 +30,12 @@ class TimeSliceSheetForm(forms.Form):
             raise forms.ValidationError(_('An unexpected error happened, please contact the system administration if the problem persists.'))
         return task
 
+class TimeSliceSheetForm(TimeSliceBaseForm):
+    def __init__(self, *args, **kwargs):
+        super(TimeSliceSheetForm, self).__init__(*args, **kwargs)
+        self.fields.keyOrder = ['duration', 'note', 'project', 'task']
+
+    duration = forms.CharField(required=True)
     def clean_duration(self):
         duration_list = self.cleaned_data['duration'].split(':')
         if len(duration_list) > 2:

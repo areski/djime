@@ -1,5 +1,4 @@
-from datetime import date
-import datetime
+from datetime import date, datetime, timedelta
 
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
@@ -13,6 +12,7 @@ from djime.models import TimeSlice, timesheet_timeslice_handler
 from djime.forms import TimeSliceSheetForm, TimesheetWeekForm
 from djime.forms import TimesheetMonthForm, TimesheetQuarterForm
 from djime.forms import TimesheetYearForm, TimesheetDateForm
+from djime.forms import TimeSliceBaseForm
 from tasks.models import Task
 from projects.models import Project
 
@@ -63,10 +63,10 @@ def timesheet(request, method=None, year=None, method_value=0, group_slug=None, 
             week = today.isocalendar()[1]
             year = today.year
 
-        start_date = datetime.date(year, 1, 1) + datetime.timedelta(days=(week-2)*7)
+        start_date = date(year, 1, 1) + timedelta(days=(week-2)*7)
         while start_date.isocalendar()[1] != week:
-            start_date += datetime.timedelta(days=1)
-        end_date = start_date + datetime.timedelta(days=7)
+            start_date += timedelta(days=1)
+        end_date = start_date + timedelta(days=7)
 
         timeslices = TimeSlice.objects.select_related().filter(
                                     user=request.user,
@@ -74,10 +74,10 @@ def timesheet(request, method=None, year=None, method_value=0, group_slug=None, 
     elif method == 'month':
         month = int(method_value)
         if year:
-            headline = '%s - %s' % (datetime.datetime(2000, month, 1).strftime('%B'), year)
+            headline = '%s - %s' % (datetime(2000, month, 1).strftime('%B'), year)
         elif month:
             year = today.year
-            headline = '%s - %s' % (datetime.datetime(2000, month, 1).strftime('%B'), year)
+            headline = '%s - %s' % (datetime(2000, month, 1).strftime('%B'), year)
         else:
             headline = 'this month'
             month = today.month
@@ -99,9 +99,9 @@ def timesheet(request, method=None, year=None, method_value=0, group_slug=None, 
             headline = 'this quarter'
             quarter = (today.month - 1) / 3 + 1
             year = today.year
-        start_date = datetime.date(year, quarter * 3 - 2, 1)
-        end_date = datetime.date(year, quarter * 3, quarter_end[quarter-1]) + \
-                                                    datetime.timedelta(days=1)
+        start_date = date(year, quarter * 3 - 2, 1)
+        end_date = date(year, quarter * 3, quarter_end[quarter-1]) + \
+                                                    timedelta(days=1)
         timeslices = TimeSlice.objects.select_related().filter(
                                     user=request.user,
                                     begin__range=(start_date, end_date))
@@ -128,7 +128,8 @@ def project_json(request, project_id):
     json = ''
     for task in tasks:
          json += '<option value="%(id)s">%(summary)s</option>' % {
-                                            'id': task.id, 'summary': task.summary}
+                                                    'id': task.id,
+                                                    'summary': task.summary}
     return HttpResponse(json)
 
 @login_required
@@ -167,9 +168,8 @@ def timesheet_select_form(request, group_slug=None, template_name="djime/select.
             form = timesheet_year_form = TimesheetYearForm(request.POST)
             if form.is_valid():
                 return HttpResponseRedirect(reverse('djime_wmqy_timesheet',
-                            kwargs={'method': 'year',
-                                    'method_value': form.cleaned_data['year'],
-                                    'year': 'checked="checked"'}))
+                        kwargs={'method': 'year',
+                                'method_value': form.cleaned_data['year']}))
             variable = 'year'
         elif request.POST.has_key('begin'):
             form = timesheet_date_form = TimesheetDateForm(request.POST)
@@ -204,8 +204,9 @@ def timesheet_date(request, end_date, start_date, group_slug=None, template_name
             timeslice.save()
 
     headline = '%s to %s' % (start_date, end_date)
-    s_date = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
-    e_date = datetime.datetime.strptime(end_date, '%Y-%m-%d').date() + datetime.timedelta(days=1)
+    s_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    e_date = datetime.strptime(end_date, '%Y-%m-%d').date() + \
+                                                    timedelta(days=1)
     timeslices = TimeSlice.objects.select_related().filter(
                                 user=request.user,
                                 begin__range=(s_date, e_date))
@@ -214,4 +215,30 @@ def timesheet_date(request, end_date, start_date, group_slug=None, template_name
         'slice_list': timesheet_timeslice_handler(timeslices),
         'timesheet_timeslice_form': form,
         'headline': headline
+    }, context_instance=RequestContext(request))
+
+def timetrack(request, group_slug=None, template_name="djime/timetrack.html", bridge=None):
+    if request.method == 'GET':
+        form = TimeSliceBaseForm(request.user)
+    elif request.method == 'POST':
+        form = TimeSliceBaseForm(request.user, request.POST)
+        if form.is_valid():
+            active_slices = Timeslice.objects.filter(user=request.user,
+                                                                duration=None)
+            # there should only be at most one active timeslice at any
+            # time but incase some error has occured, we want to stop
+            # all active timeslices whenever a new one is started.
+            for timeslice in active_slices:
+                timeslice.calculate_duration()
+                timeslice.save()
+            cd = form.cleaned_data
+            new_slice = TimeSlice(
+                task=cd['task'],
+                user=request.user,
+                note=cd['note'],
+            )
+            new_slice.save()
+
+    return render_to_response(template_name, {
+        'timestrack_timeslice_form': form
     }, context_instance=RequestContext(request))

@@ -1,0 +1,25 @@
+{% extends "djime/base.html" %}
+
+{% load i18n %}
+{% load uni_form %}
+
+{% block subnav_base %}
+<div class="clearfix">
+  <ul>
+    <li><a href="{% url djime_timetrack %}">{% trans "Track time" %}</a></li>
+    <li><a href="{% url djime_timesheet %}">{% trans "Timesheet" %}</a></li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block body %}
+<h3 class="title">{% trans "Start tracking your time" %}</h3>
+  <form class="uniForm timesheet" action="" method="post">
+    <fieldset class="inlineLabels">
+      {{ timestrack_timeslice_form|as_uni_form }}
+      <div class="form_block">
+        <input class="submit" type="submit" value="{% trans 'Start' %}" />
+      </div>
+    </fieldset>
+  </form>
+{% endblock %}

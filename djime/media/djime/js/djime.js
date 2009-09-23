@@ -8,6 +8,8 @@ $(document).ready(function () {
   $("#id_project").change(function() {
     updateTasks();
   });
-  updateTasks();
+  if ($("#id_project").val()){
+    updateTasks();
+  }
 });
 
