@@ -1,29 +1,21 @@
 import calendar
-from datetime import timedelta, date
-import datetime
-from exceptions import ValueError
-from math import floor
+from datetime import timedelta, date, datetime
 
 from django.contrib.auth.decorators import login_required
 from django.http import *
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.translation import ugettext as _
-from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q
 from django.core.urlresolvers import reverse
 
-from djime.statistics.forms import DateSelectionForm
+from djime.forms import TimesheetWeekForm
+from djime.forms import TimesheetMonthForm, TimesheetQuarterForm
+from djime.forms import TimesheetYearForm, TimesheetDateForm
 from djime.models import TimeSlice
 from djime.util import timesheet_timeslice_handler, flot_timeslices
-import djime.statistics.flashcharts as flashcharts
 from djime.statistics.forms import BillingSelectionForm
-
-try:
-    import json
-except ImportError:
-    from django.utils import simplejson as json
 
 @login_required()
 def index(request, group_slug=None, template_name="djime/statistics/index.html", bridge=None):
@@ -40,89 +32,164 @@ def index(request, group_slug=None, template_name="djime/statistics/index.html",
                     'headline': _('this week')},
                               context_instance=RequestContext(request))
 
-
 @login_required()
-def display_user_week(request, user_id, year, week):
-    if int(request.user.id) != int(user_id):
-        return HttpResponseForbidden(_('Access denied'))
-    return render_to_response('statistics/display_user_week.html', {'week': week, 'year': year, 'user_id': user_id},
-                                      context_instance=RequestContext(request))
+def statistics(request, method=None, year=None, method_value=0, group_slug=None, template_name="djime/statistics/index.html", bridge=None, ajax=False):
+    today = date.today()
+    if not method:
+        headline = 'today'
+        timeslices = TimeSlice.objects.select_related().filter(
+                            user=request.user, begin__day=today.day,
+                            begin__month=today.month, begin__year=today.year)
+    elif method == 'week':
+        week = int(method_value)
+        if year:
+            year = int(year)
+            headline = 'week %s - %s' % (week, year)
+        elif week:
+            year = today.year
+            headline = 'week %s - %s' % (week, year)
+        else:
+            headline = 'this week'
+            week = method_value = today.isocalendar()[1]
+            year = today.year
 
+        start_date = date(year, 1, 1) + timedelta(days=(week-2)*7)
+        while start_date.isocalendar()[1] != week:
+            start_date += timedelta(days=1)
+        end_date = start_date + timedelta(days=7)
 
-@login_required()
-def display_user_month(request, user_id, year, month):
-    if int(request.user.id) != int(user_id):
-        return HttpResponseForbidden(_('Access denied'))
-    return render_to_response('statistics/display_user_month.html', {'month' : month, 'year': year, 'user_id': user_id},
-                                      context_instance=RequestContext(request))
+        timeslices = TimeSlice.objects.select_related().filter(
+                                    user=request.user,
+                                    begin__range=(start_date, end_date))
+    elif method == 'month':
+        month = int(method_value)
+        if year:
+            headline = '%s - %s' % (datetime(2000, month, 1).strftime('%B'), year)
+        elif month:
+            year = today.year
+            headline = '%s - %s' % (datetime(2000, month, 1).strftime('%B'), year)
+        else:
+            headline = 'this month'
+            month = method_value = today.month
+            year = today.year
+        start_date = date(year, month, 1)
+        if month == 12:
+            end_date = date(year + 1, 1, 1)
+        else:
+            end_date = date(year, month+1, 1)
+        timeslices = TimeSlice.objects.select_related().filter(
+                    user=request.user, begin__range=(start_date, end_date))
+    elif method == 'quarter':
+        quarter = int(method_value)
+        quarter_suffix = ['1st', '2nd', '3rd', '4th']
+        quarter_end = [31, 30, 30, 31]
+        if year:
+            year = int(year)
+            headline = '%s quarter - %s' % (quarter_suffix[quarter-1], year)
+        elif quarter:
+            year = today.year
+            headline = '%s quarter - %s' % (quarter_suffix[quarter-1], year)
+        else:
+            headline = 'this quarter'
+            quarter = method_value = (today.month - 1) / 3 + 1
+            year = today.year
+        start_date = date(year, quarter * 3 - 2, 1)
+        end_date = date(year, quarter * 3, quarter_end[quarter-1]) + \
+                                                    timedelta(days=1)
+        timeslices = TimeSlice.objects.select_related().filter(
+                                    user=request.user,
+                                    begin__range=(start_date, end_date))
+    elif method == 'year':
+        year = int(method_value)
+        if not year:
+            year = method_value = today.year
+        if year == today.year:
+            headline = 'this year'
+        else:
+            headline = year
+        start_date = date(year, 1, 1)
+        end_date = date(year + 1, 1, 1)
+        timeslices = TimeSlice.objects.select_related().filter(
+                                user=request.user, begin__year=year)
 
+    if ajax:
+        return flot_timeslices(timeslices, start_date, end_date)
+    return render_to_response(template_name, {
+                'flot_data': flot_timeslices(timeslices, start_date, end_date),
+                'headline': headline,
+                'method': method,
+                'method_value': method_value,},
+                            context_instance=RequestContext(request))
 
-@login_required()
-def user_date_selection_form(request, user_id):
-    if request.method not in ('POST', 'GET'):
-        return HttpResponseNotAllowed('POST', 'GET')
-
-    if request.method == 'GET':
-        form = DateSelectionForm()
-        return render_to_response('statistics/user_date_selection.html', {'user_id': user_id, 'form': form},
-                                      context_instance=RequestContext(request))
-
+@login_required
+def statistics_select_form(request, group_slug=None, template_name="djime/statistics/select.html", bridge=None):
+    statistics_week_form = TimesheetWeekForm()
+    statistics_month_form = TimesheetMonthForm()
+    statistics_quarter_form = TimesheetQuarterForm()
+    statistics_year_form = TimesheetYearForm()
+    statistics_date_form = TimesheetDateForm()
+    variable = 'week'
     if request.method == 'POST':
-        form = DateSelectionForm(request.POST)
-        if form.is_valid():
-            start = form.cleaned_data['start']
-            end = form.cleaned_data['end']
-            return HttpResponseRedirect('/statistics/user/%s/date/%s/%s/' % (user_id, start, end))
-        else:
-            return render_to_response('statistics/user_date_selection.html', {'user_id': user_id, 'form': form},
-                                      context_instance=RequestContext(request))
+        if request.POST.has_key('week'):
+            form = statistics_week_form = TimesheetWeekForm(request.POST)
+            if form.is_valid():
+                return HttpResponseRedirect(reverse('djime_wmq_statistics',
+                            kwargs={'method': 'week',
+                                    'method_value': form.cleaned_data['week'],
+                                    'year': form.cleaned_data['year']}))
+        elif request.POST.has_key('month'):
+            form = statistics_month_form = TimesheetMonthForm(request.POST)
+            if form.is_valid():
+                return HttpResponseRedirect(reverse('djime_wmq_statistics',
+                        kwargs={'method': 'month',
+                                'method_value': form.cleaned_data['month'],
+                                'year': form.cleaned_data['year']}))
+            variable = 'month'
+        elif request.POST.has_key('quarter'):
+            form = statistics_quarter_form = TimesheetQuarterForm(request.POST)
+            if form.is_valid():
+                return HttpResponseRedirect(reverse('djime_wmq_statistics',
+                        kwargs={'method': 'quarter',
+                                'method_value': form.cleaned_data['quarter'],
+                                'year': form.cleaned_data['year']}))
+            variable = 'quarter'
+        elif request.POST.has_key('year'):
+            form = statistics_year_form = TimesheetYearForm(request.POST)
+            if form.is_valid():
+                return HttpResponseRedirect(reverse('djime_wmqy_statistics',
+                        kwargs={'method': 'year',
+                                'method_value': form.cleaned_data['year']}))
+            variable = 'year'
+        elif request.POST.has_key('begin'):
+            form = statistics_date_form = TimesheetDateForm(request.POST)
+            if form.is_valid():
+                return HttpResponseRedirect(reverse('djime_date_statistics',
+                        kwargs={'start_date': form.cleaned_data['begin'],
+                                'end_date': form.cleaned_data['end']}))
+            variable = 'custom'
+    return render_to_response(template_name, {
+        'statistics_week_form': statistics_week_form,
+        'statistics_month_form': statistics_month_form,
+        'statistics_quarter_form': statistics_quarter_form,
+        'statistics_year_form': statistics_year_form,
+        'statistics_date_form': statistics_date_form,
+        variable: 'checked="checked"',
+    }, context_instance=RequestContext(request))
 
+@login_required
+def statistics_date(request, end_date, start_date, group_slug=None, template_name="djime/statistics/index.html", bridge=None):
+    headline = '%s to %s' % (start_date, end_date)
+    s_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    e_date = datetime.strptime(end_date, '%Y-%m-%d').date() + \
+                                                    timedelta(days=1)
+    timeslices = TimeSlice.objects.select_related().filter(
+                                user=request.user,
+                                begin__range=(s_date, e_date))
 
-@login_required()
-def display_user_date_selection(request, user_id, start_date, end_date):
-    if int(request.user.id) != int(user_id):
-        return HttpResponseForbidden('Access denied')
-    s_date = start_date.split('-')
-    e_date = end_date.split('-')
-    try:
-        date_diff = datetime.date(int(e_date[0]), int(e_date[1]), int(e_date[2])) - datetime.date(int(s_date[0]), int(s_date[1]), int(s_date[2]))
-        if date_diff < datetime.timedelta(days=60) and date_diff > datetime.timedelta(days=0):
-            return render_to_response('statistics/display_user_date.html', {'user_id': user_id, 'start_date': start_date, 'end_date': end_date},
-                                          context_instance=RequestContext(request))
-        else:
-            return HttpResponse(_('Invalid date, min 1 day and max 60 days'))
-    except ValueError:
-        return HttpResponse(_('Invalid date, must be yyyy-mm-dd'))
-
-
-def data_user_week(request, week, year, user_id):
-    if request.method != 'GET':
-         return HttpResponseNotAllowed('GET')
-
-    week = int(week)
-    year = int(year)
-    return HttpResponse(flashcharts.user_week_json(request.user, week, year))
-
-
-def data_user_month(request, month, year, user_id):
-    if request.method != 'GET':
-         return HttpResponseNotAllowed('GET')
-
-    month = int(month)
-    year = int(year)
-    return HttpResponse(flashcharts.user_month_json(request.user, month, year))
-
-
-def data_user_date(request, user_id, start_date, end_date):
-    return HttpResponse(flashcharts.user_date_json(request.user, start_date, end_date))
-
-
-
-
-
-
-
-
+    return render_to_response(template_name, {
+                'flot_data': flot_timeslices(timeslices, s_date, e_date),
+                'headline': headline},
+                            context_instance=RequestContext(request))
 
 @user_passes_test(lambda u: u.is_staff)
 def billing_index(request, group_slug=None, template_name="djime/statistics/billing_index.html", bridge=None):
@@ -179,99 +246,6 @@ def billing_show(request, project_id, task_id, user_id, begin, end, group_slug=N
                         context_instance=RequestContext(request))
 
 @login_required()
-def user_billing(request, user_id):
-    user = get_object_or_404(User, pk=user_id)
-    if request.method == 'GET':
-        return render_to_response('statistics/billing_time_page.html', {'sellected_user': user, 'form': DateSelectionForm()},
-                            context_instance=RequestContext(request))
-    elif request.method == 'POST':
-        post = request.POST
-        if request.POST.has_key('number-of-weeks'):
-            date = request.POST['start-date']
-            number_of_weeks = request.POST['number-of-weeks']
-            if not re.match("[0-9]{4}[-]{1}[0-9]{2}[-]{1}[0-9]{2}$", request.POST['start-date']):
-                request.user.message_set.create(message=_("Invalid date format, must be yyyy-mm-dd."))
-                return render_to_response('statistics/billing_time_page.html', {'sellected_user': user, 'form': DateSelectionForm()},
-                                          context_instance=RequestContext(request))
-            return HttpResponseRedirect('/statistics/billing/%s/week/%s/%s/' % (user_id, date, number_of_weeks))
-            raise
-        elif request.POST.has_key('date'):
-            form = DateSelectionForm(request.POST)
-            if form.is_valid():
-                start = form.cleaned_data['start']
-                end = form.cleaned_data['end']
-                return HttpResponseRedirect('/statistics/billing/%s/date/%s/%s/' % (user_id, start, end))
-            else:
-                return render_to_response('statistics/billing_time_page.html', {'sellected_user': user, 'form': form},
-                                          context_instance=RequestContext(request))
-
-
-@login_required()
-def user_billing_weeks(request, user_id, date, number_of_weeks):
-    user = get_object_or_404(User, pk=user_id)
-    if number_of_weeks > 5:
-        number_of_weeks = 4
-    date_list = date.split('-')
-    try:
-        start_date = datetime.date(int(date_list[0]), int(date_list[1]), int(date_list[2]))
-    except ValueError:
-        return HttpResponse(_('Invalid date, must be yyyy-mm-dd'))
-    end_date = start_date + datetime.timedelta(days=number_of_weeks*7)
-    slice_set = TimeSlice.objects.filter(user=user, begin__range=(start_date, end_date))
-    project_dict = {}
-    for time_slice in slice_set:
-        if time_slice.slip.project not in project_dict.keys():
-            project_dict[time_slice.slip.project] = {}
-            project_dict[time_slice.slip.project]['slips'] = {}
-            project_dict[time_slice.slip.project]['slips'][time_slice.slip] = [time_slice.slip, time_slice.duration]
-            project_dict[time_slice.slip.project]['duration'] = time_slice.duration
-            project_dict[time_slice.slip.project]['project'] = time_slice.slip.project
-        else:
-            if time_slice.slip not in project_dict[time_slice.slip.project]['slips'].keys():
-                project_dict[time_slice.slip.project]['slips'][time_slice.slip] = [time_slice.slip, time_slice.duration]
-                project_dict[time_slice.slip.project]['duration'] += time_slice.duration
-            else:
-                project_dict[time_slice.slip.project]['slips'][time_slice.slip][1] += time_slice.duration
-                project_dict[time_slice.slip.project]['duration'] += time_slice.duration
-
-    for key in project_dict.keys():
-        project_dict[key]['duration'] = '%02i:%02i' % (floor(project_dict[key]['duration'] / 3600), floor(project_dict[key]['duration'] % 3600 ) / 60)
-        for key_slip in project_dict[key]['slips'].keys():
-            project_dict[key]['slips'][key_slip][1] = '%02i:%02i' % (floor(project_dict[key]['slips'][key_slip][1] / 3600), floor(project_dict[key]['slips'][key_slip][1] % 3600 ) / 60)
-
-    return render_to_response('statistics/billing_page.html', {'user': user, 'start_date': start_date, 'end_date': end_date, 'project_dict': project_dict},
-                                context_instance=RequestContext(request))
-
-
-def user_billing_date(request, user_id, start_date, end_date):
-    user = get_object_or_404(User, pk=user_id)
-    try:
-        start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
-        end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
-    except ValueError:
-        return HttpResponse('Invalid dateformat, must be yyyy-mm-dd')
-    slice_set = TimeSlice.objects.filter(user=user, begin__range=(start_date, end_date))
-    project_dict = {}
-    for time_slice in slice_set:
-        if time_slice.slip.project not in project_dict.keys():
-            project_dict[time_slice.slip.project] = {}
-            project_dict[time_slice.slip.project]['slips'] = {}
-            project_dict[time_slice.slip.project]['slips'][time_slice.slip] = [time_slice.slip, time_slice.duration]
-            project_dict[time_slice.slip.project]['duration'] = time_slice.duration
-            project_dict[time_slice.slip.project]['project'] = time_slice.slip.project
-        else:
-            if time_slice.slip not in project_dict[time_slice.slip.project]['slips'].keys():
-                project_dict[time_slice.slip.project]['slips'][time_slice.slip] = [time_slice.slip, time_slice.duration]
-                project_dict[time_slice.slip.project]['duration'] += time_slice.duration
-            else:
-                project_dict[time_slice.slip.project]['slips'][time_slice.slip][1] += time_slice.duration
-                project_dict[time_slice.slip.project]['duration'] += time_slice.duration
-
-    for key in project_dict.keys():
-        project_dict[key]['duration'] = '%02i:%02i' % (floor(project_dict[key]['duration'] / 3600), floor(project_dict[key]['duration'] % 3600 ) / 60)
-        for key_slip in project_dict[key]['slips'].keys():
-            project_dict[key]['slips'][key_slip][1] = '%02i:%02i' % (floor(project_dict[key]['slips'][key_slip][1] / 3600), floor(project_dict[key]['slips'][key_slip][1] % 3600 ) / 60)
-
-    return render_to_response('statistics/billing_page.html', {'user': user, 'start_date': start_date, 'end_date': end_date, 'project_dict': project_dict},
-                                context_instance=RequestContext(request))
-
+def flot(request, method=None, year=None, method_value=0):
+    result = statistics(request, method=method, year=year, method_value=method_value, ajax=True)
+    return HttpResponse(result)

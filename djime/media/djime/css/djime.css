@@ -83,3 +83,16 @@ table.my-tasks tr.timer-added {
 tr.timer-added span.hasTimeClock.tock span.sep-hours {
   color: #DEF;
 }
+
+/** Flot plot styles **/
+ul.djime-flot {
+  display: inline;
+  list-style: none;
+  padding-left: 275px;
+}
+
+ul.djime-flot li {
+  display: inline;
+  padding-left: 5px;
+  padding-right: 5px;
+}

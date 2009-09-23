@@ -46,11 +46,11 @@ $(document).ready(function () {
 	    .parents("tr").addClass('timer-added');
 	}
 	// Add statistics plot if data is available
-	console.log(djime.flot_data.flot);
-	if (djime.flot_data.flot) {
+	if (djime.flot_data) {
 	  $.plot($("#flot"),
 	  [{
 	    data: djime.flot_data.flot,
+	    color: "#99BBCC",
 	    bars: {
 	      show: true,
 	      barWidth: 40000000,
@@ -65,6 +65,67 @@ $(document).ready(function () {
 	    },
 	    yaxis: { mode: "time" }
 	  });
+    $("input#stat-prev").click(function() {
+      if (djime.flot_data.current_value > 1) {
+        djime.flot_data.current_value -= 1;
+      }
+      updateGraph('current');
+    });
+    $("input#stat-next").click(function() {
+      if ((djime.flot_data.meth == 'week' && djime.flot_data.current_value < 53) || (djime.flot_data.meth == 'month' && djime.flot_data.current_value < 12) || (djime.flot_data.meth == 'quarter' && djime.flot_data.current_value < 4) || (djime.flot_data.meth == 'year')) {
+        djime.flot_data.current_value += 1;
+        updateGraph('current');
+      }
+    });
+    $("input#stat-orig").click(function() {
+      updateGraph('original');
+    });
 	}
+	$("div.outer").hide().filter("div." + $("#timesheet-select input:checked").val()).show();
+  $("form#timesheet-select input").click(function () {
+    $("div.outer").hide().filter("." + $(this).val()).show();
+  });
+	$("#id_begin, #id_end").datepicker({
+	  firstDay: 1,
+		dateFormat: 'yy-mm-dd',
+		doneButtonText: 'Choose',
+		changeMonth: true,
+		changeYear: true,
+	});
 });
 
+updateGraph = function (state) {
+  if (state == 'current') {
+    var value = djime.flot_data.current_value;
+  }
+  else {
+    var value = djime.flot_data.meth_value;
+  }
+  $.getJSON(document.URL.substr(0, document.URL.search(/\/time\/statistics\//)) + '/time/statistics/ajax/flot/' + djime.flot_data.meth + '/' + value + '/',
+    function(data) {
+      $.plot($("#flot"),
+  	  [{
+  	    data: data.flot,
+  	    color: "#99BBCC",
+  	    bars: {
+  	      show: true,
+  	      barWidth: 40000000,
+  	      align: "center"
+  	    },
+  	  }],
+  	  {
+  	    xaxis: {
+  	      mode: "time",
+  	      min: data.min * 0.99997,
+  	      max: data.max * 1.00003
+  	    },
+  	    yaxis: { mode: "time" }
+  	  });
+  	  if (state == 'current') {
+        $("#flot-headline").text('Now showing ' + djime.flot_data.meth + ' ' + value);
+      }
+      else {
+       $("#flot-headline").text('');
+      }
+    });
+}

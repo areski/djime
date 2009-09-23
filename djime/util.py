@@ -31,7 +31,7 @@ def format_seconds(seconds):
 def timesheet_timeslice_handler(timeslices):
     if not timeslices:
         return timeslices
-    timeslices = timeslices.order_by('task', 'note')
+    timeslices = timeslices.exclude(duration=None).order_by('task', 'note')
     result = []
     test = []
     # Create a timeslice like object, that is unique.
@@ -50,6 +50,7 @@ def flot_timeslices(timeslices, start, end):
     Function to convert a Queryset of timselices into data that can be
     used by flot in json format.
     """
+    timeslices.exclude(duration=None)
     min_val = calendar.timegm(start.timetuple()) * 1000
     vdict = {}
     while start <= end:
