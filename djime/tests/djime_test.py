@@ -169,7 +169,7 @@ class SlipRESTActionsTestCase(TestCase):
 
                 # Send the request to start a new timeslip
                 # first we'll create a time to send, that we can use to compare later
-                timeSetBegin = datetime.now()
+                timeSetBegin = datetime.utcnow()
                 begin = '%s, %s, %s, %s, %s, %s, %s' % (timeSetBegin.year, timeSetBegin.month, timeSetBegin.day, timeSetBegin.hour, timeSetBegin.minute, timeSetBegin.second, timeSetBegin.microsecond)
                 response = self.client.post('/slip/%i/start/' % slip.id,
                                            {'begin': begin})
@@ -203,13 +203,13 @@ class SlipRESTActionsTestCase(TestCase):
 
                 # Send the request to start a new timeslip
                 # first we'll create a time to send, that we can use to compare later
-                timeSetBegin = datetime.now()
+                timeSetBegin = datetime.utcnow()
                 begin = '%s, %s, %s, %s, %s, %s, %s' % (timeSetBegin.year, timeSetBegin.month, timeSetBegin.day, timeSetBegin.hour, timeSetBegin.minute, timeSetBegin.second, timeSetBegin.microsecond)
                 response = self.client.post('/slip/%i/start/' % slip.pk,
                                            {'begin': begin})
 
                 # Now stopping the timeslip with a new timeSet
-                timeSetEnd = datetime.now()
+                timeSetEnd = datetime.utcnow()
                 end = '%s, %s, %s, %s, %s, %s, %s' % (timeSetEnd.year, timeSetEnd.month, timeSetEnd.day, timeSetEnd.hour, timeSetEnd.minute, timeSetEnd.second, timeSetEnd.microsecond)
                 response = self.client.post('/slip/%i/stop/' % slip.pk,
                                            {'end': end})

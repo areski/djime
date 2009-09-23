@@ -123,15 +123,6 @@ def timesheet(request, method=None, year=None, method_value=0, group_slug=None, 
         'headline': headline
     }, context_instance=RequestContext(request))
 
-def project_json(request, project_id):
-    tasks = Task.objects.filter(object_id=project_id).order_by('summary')
-    json = ''
-    for task in tasks:
-         json += '<option value="%(id)s">%(summary)s</option>' % {
-                                                    'id': task.id,
-                                                    'summary': task.summary}
-    return HttpResponse(json)
-
 @login_required
 def timesheet_select_form(request, group_slug=None, template_name="djime/select.html", bridge=None):
     timesheet_week_form = TimesheetWeekForm()
@@ -217,13 +208,14 @@ def timesheet_date(request, end_date, start_date, group_slug=None, template_name
         'headline': headline
     }, context_instance=RequestContext(request))
 
+@login_required()
 def timetrack(request, group_slug=None, template_name="djime/timetrack.html", bridge=None):
     if request.method == 'GET':
         form = TimeSliceBaseForm(request.user)
     elif request.method == 'POST':
         form = TimeSliceBaseForm(request.user, request.POST)
         if form.is_valid():
-            active_slices = Timeslice.objects.filter(user=request.user,
+            active_slices = TimeSlice.objects.filter(user=request.user,
                                                                 duration=None)
             # there should only be at most one active timeslice at any
             # time but incase some error has occured, we want to stop
@@ -242,3 +234,72 @@ def timetrack(request, group_slug=None, template_name="djime/timetrack.html", br
     return render_to_response(template_name, {
         'timestrack_timeslice_form': form
     }, context_instance=RequestContext(request))
+
+
+@login_required()
+def task_action(request, task_id, action):
+    if request.method not in ('GET', 'POST'):
+        return HttpResponseNotAllowed(('POST', 'GET'))
+
+    # make sure the task exists
+    task = get_object_or_404(Task, pk=task_id)
+
+    if action == 'start':
+        # Make sure the user doesn't already have an active time slice
+        # for this Task
+        if not TimeSlice.objects.filter(user=request.user,
+                                        task=task_id, duration=None):
+            if request.POST.has_key('begin'):
+                start_time = 0
+                time = request.POST['begin']
+                if type(time) == unicode:
+                    time = time.split(', ')
+                    start_time = datetime(int(time[0]), int(time[1]), int(time[2]), int(time[3]), int(time[4]), int(time[5]), int(time[6]))
+                else:
+                    start_time = datetime.utcnow()
+            else:
+                start_time = datetime.utcnow()
+
+            # Stop active timeslices if any
+            slice_query_set = TimeSlice.objects.filter(user=request.user,
+                                                                duration=None)
+            if slice_query_set:
+                for tslice in slice_query_set:
+                    tslice.calculate_duration()
+                    tslice.save()
+
+            new_slice = TimeSlice.objects.create(user=request.user, task_id=task_id, begin=start_time)
+            new_slice.save()
+            return HttpResponse('Your timeslice begin time %(start_time)s has been created' % {'start_time': start_time})
+        else:
+            return HttpResponse('You already have an unfinished time slice for this task. A new one has not been created.', status=409)
+
+    elif action == 'stop':
+        time_slice = get_object_or_404(TimeSlice, user=request.user, task=task_id, duration=None)
+        if request.POST.has_key('end'):
+            time = request.POST['end']
+            if type(time) == unicode:
+                time = time.split(', ')
+                end_time = datetime(int(time[0]), int(time[1]), int(time[2]), int(time[3]), int(time[4]), int(time[5]), int(time[6]))
+        else:
+            end_time = datetime.utcnow()
+        time_slice.calculate_duration(end_time)
+        time_slice.save()
+        return HttpResponse('Your timeslice for task "%(summary)s", begintime %(begin)s has been stopped at %(end)s' % {'summary': time_slice.task.summary, 'begin': time_slice.begin, 'end': end_time})
+
+    elif action == 'get_json':
+        data = {'active': task.is_active(), 'task_time' : task.display_time()}
+        return HttpResponse(json.dumps(data))
+
+    else:
+        # TODO: Make a return for only action allowed is start/stop ect
+        pass
+
+def project_json(request, project_id):
+    tasks = Task.objects.filter(object_id=project_id).order_by('summary')
+    json = ''
+    for task in tasks:
+         json += '<option value="%(id)s">%(summary)s</option>' % {
+                                                    'id': task.id,
+                                                    'summary': task.summary}
+    return HttpResponse(json)

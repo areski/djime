@@ -10,7 +10,7 @@ def do_statistics_nav_vars(parser, token):
         raise template.TemplateSyntaxError, _("%(name)r tag needs a single argument") % {'name': token.contents.split()[0]}
     if token.contents.split()[1] not in ['get']:
         raise template.TemplateSyntaxError, _("%(name)r tag valid arguments is: get") % {'name': token.contents.split()[0]}
-    now = datetime.datetime.now()
+    now = datetime.datetime.utcnow()
     current_week = now.isocalendar()[1]
     current_week_year = now.isocalendar()[0]
     current_month = now.month

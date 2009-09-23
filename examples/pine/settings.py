@@ -116,6 +116,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "announcements.context_processors.site_wide_announcements",
     "account.context_processors.openid",
     "account.context_processors.account",
+
+    "djime.context_processors.statusbar",
 )
 
 INSTALLED_APPS = (

@@ -20,14 +20,14 @@ class TimeSlice(models.Model):
     """
     task = models.ForeignKey(Task, related_name="timeslices", verbose_name=_('task'))
     user = models.ForeignKey(User, related_name="timeslices", verbose_name=_('user'))
-    begin = models.DateTimeField(default=datetime.datetime.now, verbose_name=_('start time and date'))
+    begin = models.DateTimeField(default=datetime.datetime.utcnow, verbose_name=_('start time and date'))
     duration = models.PositiveIntegerField(null=True, blank=True, verbose_name=_('duration in seconds'))
     note = models.TextField(null=True, blank=True, verbose_name=_('note/explanation'))
 
     def __unicode__(self):
         return _('From %(begin)s') % {'begin': self.begin}
 
-    def calculate_duration(self, end=datetime.datetime.now(), force=False):
+    def calculate_duration(self, end=datetime.datetime.utcnow(), force=False):
         """
         Calculate the duration of the time slice.
 
@@ -36,7 +36,7 @@ class TimeSlice(models.Model):
         force parameter is True.
 
         Keyword arguments:
-        end -- datetime object for the end (default datetime.datetime.now())
+        end -- datetime object for the end (default datetime.datetime.utcnow())
         force -- force the duration to be recalculated (default False)
 
         """

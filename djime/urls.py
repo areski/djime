@@ -9,5 +9,6 @@ urlpatterns = patterns('djime.views',
     url(r'^timesheet/select/$', 'timesheet_select_form', name='djime_select_timesheet'),
     url(r'^timetrack/$', 'timetrack', name='djime_timetrack'),
     url(r'^json/project/(?P<project_id>\d+)$', 'project_json', name='djime_project_json'),
+    url(r'^ajax/task/(?P<task_id>\d+)/(?P<action>(start|stop|get_json))/$', 'task_action', name='djime_task_action'),
 )
 

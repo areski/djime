@@ -17,10 +17,11 @@ def statusbar(request):
             # Unpack the QuerySet to get the model object.
             cslice = current_slice[0]
             slice_time = {'year': cslice.begin.year, 'month': cslice.begin.month-1, 'day': cslice.begin.day, 'hour': cslice.begin.hour, 'minute': cslice.begin.minute, 'second': cslice.begin.second}
-            templatevars['timer'] = {
+            templatevars['djime'] = {
                 'slice': cslice,
                 'time': slice_time,
-                'class': 'timer-running'
+                'class': 'timer-running',
+                'total_time': cslice.task.display_time()
             }
     return templatevars
 
