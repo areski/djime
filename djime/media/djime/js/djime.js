@@ -45,5 +45,26 @@ $(document).ready(function () {
 	    .parents("td").addClass('timer-added').end()
 	    .parents("tr").addClass('timer-added');
 	}
+	// Add statistics plot if data is available
+	console.log(djime.flot_data.flot);
+	if (djime.flot_data.flot) {
+	  $.plot($("#flot"),
+	  [{
+	    data: djime.flot_data.flot,
+	    bars: {
+	      show: true,
+	      barWidth: 40000000,
+	      align: "center"
+	    },
+	  }],
+	  {
+	    xaxis: {
+	      mode: "time",
+	      min: djime.flot_data.min * 0.99997,
+	      max: djime.flot_data.max * 1.00003
+	    },
+	    yaxis: { mode: "time" }
+	  });
+	}
 });
 

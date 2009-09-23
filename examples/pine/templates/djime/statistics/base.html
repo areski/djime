@@ -4,7 +4,6 @@
 
 {% block subnav %}
   <ul>
-    <il><a href="{% url djime_timesheet %}">{%trans "Today" %}</a></li>
     <il><a href="{% url djime_this_wmqy_timesheet method="week" %}">{% trans "This week" %}</a></li>
     <il><a href="{% url djime_this_wmqy_timesheet method="month" %}">{% trans "This month" %}</a></li>
     <il><a href="{% url djime_this_wmqy_timesheet method="quarter" %}">{% trans "This quarter" %}</a></li>
@@ -14,4 +13,17 @@
       <il><a href="{% url djime_statistics_billing_index %}">{% trans "Billing infomation" %}</a></li> 
     {% endif %}
   </ul>
+{% endblock %}
+
+{% block extra_body %}
+  {% if flot_data %}
+    <script>
+      djime.flot_data = {{ flot_data|safe }};
+    </script>
+  {% endif %}
+ <script type="text/javascript" src="{{ STATIC_URL }}djime/js/djime.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}external/js/jquery.flot.js"></script>
+  <!--[if IE]>
+  <script type="text/javascript" src="{{ STATIC_URL }}external/js/excanvas.js"></script>
+  <![endif]-->
 {% endblock %}

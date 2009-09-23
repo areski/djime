@@ -1,4 +1,5 @@
-from datetime import timedelta
+import calendar
+from datetime import timedelta, date
 import datetime
 from exceptions import ValueError
 from math import floor
@@ -14,13 +15,29 @@ from django.db.models import Q
 from django.core.urlresolvers import reverse
 
 from djime.statistics.forms import DateSelectionForm
-from djime.models import TimeSlice, timesheet_timeslice_handler
+from djime.models import TimeSlice
+from djime.util import timesheet_timeslice_handler, flot_timeslices
 import djime.statistics.flashcharts as flashcharts
 from djime.statistics.forms import BillingSelectionForm
 
+try:
+    import json
+except ImportError:
+    from django.utils import simplejson as json
+
 @login_required()
-def index(request):
-    return render_to_response('djime/statistics/index.html', {},
+def index(request, group_slug=None, template_name="djime/statistics/index.html", bridge=None):
+    start = date.today()
+    end = date.today()
+    while start.isocalendar()[1] == end.isocalendar()[1]:
+           start -= timedelta(days=1)
+    start += timedelta(days=1)
+    end = start + timedelta(days=7)
+    timeslices = TimeSlice.objects.filter(user=request.user,
+                                                    begin__range=(start, end))
+    return render_to_response(template_name, {
+                    'flot_data': flot_timeslices(timeslices, start, end),
+                    'headline': _('this week')},
                               context_instance=RequestContext(request))
 
 
@@ -125,7 +142,6 @@ def billing_index(request, group_slug=None, template_name="djime/statistics/bill
             return HttpResponseRedirect(reverse('djime_statistics_billing_show', kwargs=rd))
     return render_to_response(template_name, {'billing_form': form},
                         context_instance=RequestContext(request))
-
 
 @user_passes_test(lambda u: u.is_staff)
 def billing_show(request, project_id, task_id, user_id, begin, end, group_slug=None, template_name="djime/statistics/billing_info.html", bridge=None):

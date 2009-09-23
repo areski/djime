@@ -58,25 +58,3 @@ class DataImport(models.Model):
     completed = models.DateTimeField(blank=True, null=True, verbose_name=_('completed'))
     complete_data = models.FileField(upload_to='import_data/complete/%Y/%m/', verbose_name=_('complete data'))
     partial_data = models.FileField(upload_to='import_data/partial/%Y/%m/', verbose_name=_('partial data'))
-
-def timesheet_timeslice_handler(timeslices):
-    if not timeslices:
-        return timeslices
-    timeslices = timeslices.order_by('task', 'note')
-    result = []
-    test = []
-    # create a timeslice that is different from the first timeslice.
-    # TODO: why does TimeSlice().task give strange error?
-    temp_slice = timeslices[0]
-    if not temp_slice.note:
-        temp_slice.note = 'a'
-    else:
-        temp_slice.note += 'a'
-    for timeslice in timeslices:
-        if timeslice.note == temp_slice.note and timeslice.task == temp_slice.task:
-            temp_slice.duration += timeslice.duration
-        else:
-            result.append(temp_slice)
-            temp_slice = timeslice
-    result.append(temp_slice)
-    return result[1:]

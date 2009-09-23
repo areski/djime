@@ -1,3 +1,10 @@
 {% extends "djime/statistics/base.html" %}
 
 {% load i18n %}
+
+{% block body %}
+  <h3>{% blocktrans %}Statistical graph for {{ headline }}{% endblocktrans %}</h3>
+  <div id="flot" style="width:800px; height:600px"></div>
+{% endblock %}
+
+

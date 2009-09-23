@@ -9,7 +9,8 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext as _
 
-from djime.models import TimeSlice, timesheet_timeslice_handler
+from djime.models import TimeSlice
+from djime.util import timesheet_timeslice_handler
 from djime.forms import TimeSliceSheetForm, TimesheetWeekForm
 from djime.forms import TimesheetMonthForm, TimesheetQuarterForm
 from djime.forms import TimesheetYearForm, TimesheetDateForm

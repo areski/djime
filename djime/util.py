@@ -2,6 +2,13 @@
 Djime utility functions.
 """
 from math import floor
+import calendar
+from datetime import timedelta
+
+try:
+    import json
+except ImportError:
+    from django.utils import simplejson as json
 
 def delta_to_seconds(delta):
     """Convert a timedelta object into the equivalent number of seconds."""
@@ -37,3 +44,30 @@ def timesheet_timeslice_handler(timeslices):
             temp_slice = timeslice
     result.append(temp_slice)
     return result[1:]
+
+def flot_timeslices(timeslices, start, end):
+    """
+    Function to convert a Queryset of timselices into data that can be
+    used by flot in json format.
+    """
+    min_val = calendar.timegm(start.timetuple()) * 1000
+    vdict = {}
+    while start <= end:
+        vdict[start] = 0
+        start += timedelta(days=1)
+    for tslice in timeslices:
+        vdict[tslice.begin.date()] += tslice.duration
+    vlist = []
+    keys = vdict.keys()
+    keys.sort()
+    for key in keys[:-1]:
+        # Only show entries where the days duration is above 10 mins.
+        if vdict[key] > 600:
+            vlist.append([calendar.timegm(key.timetuple()) * 1000,
+                                                        vdict[key] * 1000])
+    result = json.dumps({
+        'flot': vlist,
+        'min': min_val,
+        'max': calendar.timegm((end - timedelta(days=1)).timetuple()) * 1000,
+    })
+    return result
