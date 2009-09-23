@@ -1,23 +1,10 @@
 from django.contrib import admin
-from djime.models import Slip, TimeSlice, DataImport
-
-
-class InlineTimeSlice(admin.TabularInline):
-    model = TimeSlice
-    extra = 2
-
-class SlipAdmin(admin.ModelAdmin):
-    date_hierarchy = 'created'
-    inlines = (InlineTimeSlice,)
-    list_display = ('name', 'user', 'created', 'display_time', 'project', 'client')
-    list_filter = ('user', 'project', 'client')
-    ordering = ('-created',)
-    search_fields = ('name',)
+from djime.models import TimeSlice, DataImport
 
 class TimeSliceAdmin(admin.ModelAdmin):
     date_hierarchy = 'begin'
-    list_display = ('begin', 'slip', 'user', 'duration')
-    list_filter = ('user', 'begin')
+    list_display = ('task', 'begin', 'user', 'duration', 'note')
+    list_filter = ('task', 'user', 'begin')
     ordering = ('-begin',)
 
 class DataImportAdmin(admin.ModelAdmin):
@@ -28,6 +15,5 @@ class DataImportAdmin(admin.ModelAdmin):
 
 
 admin.site.register(TimeSlice, TimeSliceAdmin)
-admin.site.register(Slip, SlipAdmin)
 admin.site.register(DataImport, DataImportAdmin)
 
