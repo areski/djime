@@ -33,7 +33,7 @@
         </thead>
         <tbody>
           {% for task in task_list %}
-            <tr class="{% cycle odd,even %} task">
+            <tr class="{% cycle odd,even %} task {{ task.id }}">
               <td>{{ task.id }}</td>
               <td><a href="{% groupurl task_detail task.group id=task.id %}">{{ task.summary }}</a></td>
               <td>{% blocktrans with task.modified|shorttimesince as time %} {{ time }} ago{% endblocktrans %}</td>

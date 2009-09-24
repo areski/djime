@@ -11,14 +11,16 @@ $(document).ready(function () {
     });
   });
   $("tbody td.track span").click(function () {
+    task_id = $(this).attr('class').match(/^\d+/)[0]
+    djime.timer =  $(this).parents("td").prev();
 	  if ($(this).parents("td").hasClass('timer-added')) {
 	    // Timer is active, must stop the time and update
 	    $(this).parents("td").removeClass('timer-added').end()
 	      .parents("tr").removeClass('timer-added').end()
 	      .timeclock('destroy');
 	    $("#task-timer-sidebar-button").timeclock('destroy');
-	    $.post('/time/ajax/task/' + $(this).attr('class').match(/^\d+/)[0] + '/stop/');
-	    $.getJSON('/time/ajax/task/' + $(this).attr('class').match(/^\d+/)[0] + '/get_json/', function(data) {
+	    $.post('/time/ajax/task/' + task_id + '/stop/');
+	    $.getJSON('/time/ajax/task/' + task_id + '/get_json/', function(data) {
 	      $("#djime-statusbar").find("p.total-time span").text(data.task_time);
 	    });
 	  }
@@ -30,20 +32,22 @@ $(document).ready(function () {
 	    $(this).parents("td").addClass('timer-added').end()
 	      .parents("tr").addClass('timer-added').end()
 	      .timeclock();
-	    $("#task-timer-sidebar-button").timeclock('destroy').timeclock();
-	    $.post('/time/ajax/task/' + $(this).attr('class').match(/^\d+/)[0] + '/start/');
-	    $.getJSON('/time/ajax/task/' + $(this).attr('class').match(/^\d+/)[0] + '/get_json/', function(data) {
+	    $("#task-timer-sidebar-button").timeclock('destroy');
+	    $.post('/time/ajax/task/' + task_id + '/start/');
+	    $.getJSON('/time/ajax/task/' + task_id + '/get_json/', function(data) {
 	      $("#djime-statusbar").find("p.total-time span").text(data.task_time).end()
 	        .find("p.task span").text(data.task_summary).end()
 	        .find("p.project span").text(data.project);
+	      djime.timer.text(data.task_time);
 	    });
+	    djimeStatusBar(task_id);
 	  }
 	});
 	// Add active timeclock if task is in the table.
 	if (djime.task_statusbar_id) {
-	  $("tbody td.track span." + djime.task_statusbar_id).timeclock({since: djime.current_time})
+	  djime.timer = $("tbody td.track span." + djime.task_statusbar_id).timeclock({since: djime.current_time})
 	    .parents("td").addClass('timer-added').end()
-	    .parents("tr").addClass('timer-added');
+	    .parents("tr").addClass('timer-added').end();
 	}
 	// Add statistics plot if data is available
 	if (djime.flot_data) {
