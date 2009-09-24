@@ -1,0 +1,44 @@
+{% extends "djime/data_import/base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Import data" %}{% endblock %}
+
+{% block body %}
+<table class="djime import">
+  <thead>
+    <tr>
+      <th>{% trans "Start" %}</th>
+      <th>{% trans "Stop" %}</th>
+      <th>{% trans "Date" %}</th>
+      <th>{% trans "Duration" %}</th>
+      <th>{% trans "Project" %}</th>
+      <th>{% trans "Task" %}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in import_data %}
+    <tr>
+      <td>{{ item.start }}</td>
+      <td>{{ item.end }}</td>
+      <td>{{ item.date }}</td>
+      <td>{{ item.duration }}</td>
+      <td>{{ item.project }}</td>
+      <td>{{ item.task }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="import">
+  <p>
+    {% trans "Confirm import" %}:
+  </p>
+  <form method="post" action="{% url djime_data_import_action import_id=import_id, action="save" %}">
+    <input type="submit" name="save" value="{% trans 'Save' %}" />
+  </form>
+  <form method="post" action="{% url djime_data_import_action import_id=import_id, action="cancel" %}">
+    <input type="submit" name="cancel" value="{% trans 'Cancel' %}" />
+  </form>
+</div>
+{% endblock %}

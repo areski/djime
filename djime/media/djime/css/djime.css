@@ -96,3 +96,14 @@ ul.djime-flot li {
   padding-left: 5px;
   padding-right: 5px;
 }
+
+/** Import styles **/
+div.import p,
+div.import form {
+  display: inline;
+  padding-right: 10px;
+}
+
+div.import {
+  padding-top: 10px;
+}

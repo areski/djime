@@ -13,3 +13,4 @@ urlpatterns = patterns('djime.views',
 )
 
 urlpatterns += patterns('djime.statistics.views', (r'^statistics/', include('djime.statistics.urls')))
+urlpatterns += patterns('djime.data_import.views', (r'^import/', include('djime.data_import.urls')))
