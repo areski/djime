@@ -47,7 +47,11 @@ table.billing tr.even {
 }
 
 table.my-tasks tr.timer-added {
-  background: #DEF;
+  background: #B4FFE5;
+}
+
+table.my-tasks tr.timer-added span.hasTimeClock.tock span.sep-hours {
+  color: #B4FFE5;
 }
 
 /** statusbar styles **/
