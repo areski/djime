@@ -107,3 +107,12 @@ div.import form {
 div.import {
   padding-top: 10px;
 }
+
+/** Tasks app generated tables **/
+table.djime.task_list tr.timer-added {
+  background: #B4FFE5;
+}
+
+table.djime.task_list tr.timer-added span.hasTimeClock.tock span.sep-hours {
+  color: #B4FFE5;
+}
