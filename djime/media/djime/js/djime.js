@@ -12,7 +12,7 @@ $(document).ready(function () {
   });
   $("tbody td.track span").click(function () {
     task_id = $(this).attr('class').match(/^\d+/)[0]
-    djime.timer =  $(this).parents("td").prev();
+    djime.timer = $(this);
 	  if ($(this).parents("td").hasClass('timer-added')) {
 	    // Timer is active, must stop the time and update
 	    $(this).parents("td").removeClass('timer-added').end()
@@ -21,7 +21,9 @@ $(document).ready(function () {
 	    $("#task-timer-sidebar-button").timeclock('destroy');
 	    $.post('/time/ajax/task/' + task_id + '/stop/');
 	    $.getJSON('/time/ajax/task/' + task_id + '/get_json/', function(data) {
-	      $("#djime-statusbar").find("p.total-time span").text(data.task_time);
+	      $("#djime-statusbar").find("p.total-time span").text(data.task_time).end()
+	        .find("p.task span").text(data.task_summary).end()
+	        .find("p.project span").text(data.project);
 	    });
 	  }
 	  else {
@@ -38,7 +40,7 @@ $(document).ready(function () {
 	      $("#djime-statusbar").find("p.total-time span").text(data.task_time).end()
 	        .find("p.task span").text(data.task_summary).end()
 	        .find("p.project span").text(data.project);
-	      djime.timer.text(data.task_time);
+	      djime.timer.parents('td').prev().text(data.task_time);
 	    });
 	    djimeStatusBar(task_id);
 	  }

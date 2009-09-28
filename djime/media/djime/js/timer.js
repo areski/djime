@@ -14,7 +14,6 @@ djimeStatusBar = function(task_id) {
     timer = $('#task-timer-sidebar-button');
   	if (!(timer.hasClass('timer-added'))) {
   	  if (noop) {
-  	    console.log('noop');
   	    timer.timeclock().addClass('timer-added');
   	  }
   	  else {
