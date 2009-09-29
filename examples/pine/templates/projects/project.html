@@ -21,7 +21,7 @@
 {% block body %}
     
     {% if user.is_authenticated %}
-        <div class="right_panel">
+        <div class="right_panel djime">
             <div class="members">
                 <h2>{% trans "Members" %}</h2>
                 <table width="100%">
@@ -35,6 +35,31 @@
                     {% endfor %}
                     {% if project.members.all|length|divisibleby:"3" %}{% else %}</tr>{% endif %}
                 </table>
+            </div>
+            <div id="djime-project-timetrack">
+              <h2>{% trans "Start tracking time" %}</h2>
+              <form class="uniForm timesheet" action="{% url djime_timetrack %}" method="post">
+                <fieldset class="inlineLabels">
+                  <div id="div_id_note" class="ctrlHolder">
+              	    <label for="id_note">
+              	      {% trans "Note" %}
+              	    </label>
+              	    <textarea id="id_note" rows="10" cols="40" name="note" class="textarea"></textarea>
+                  </div>
+                  <div id="div_id_task" class="ctrlHolder">
+                    <label for="id_task">
+              	      {% trans "Task" %}
+              	    </label>
+    	              <select id="id_task" class="select" name="task">
+                    </select>
+                  </div>
+                  <input name="destination" value="project_detail" style="display: none" />
+                  <input name="project" value="{{ project.id }}" style="display: none" />
+                  <div class="form_block">
+                    <input class="submit" type="submit" value="{% trans "Start" %}" />
+                  </div>
+                </fieldset>
+              </form>
             </div>
         </div>
     {% endif %}
@@ -179,6 +204,9 @@
               else {
                 $("#add-member-toggle").unbind('click').text('No members to add at this time');
               }
+            });
+            $.get('{% url djime_project_json project.id %}', {'get': 'user'}, function(data) {
+              $("#id_task").html(data);
             });
         });
     </script>

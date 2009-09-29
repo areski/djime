@@ -112,11 +112,30 @@ div.import {
   padding-top: 10px;
 }
 
-/** Tasks app generated tables **/
+/** Tweaks for Tasks app generated tables **/
 table.djime.task_list tr.timer-added {
   background: #B4FFE5;
 }
 
 table.djime.task_list tr.timer-added span.hasTimeClock.tock span.sep-hours {
   color: #B4FFE5;
+}
+
+/** Tweaks for Projects app generated pages **/
+
+div.right_panel.djime {
+  width: 300px;
+}
+
+div.right_panel.djime .uniForm .inlineLabels label {
+  width: 25%;
+}
+
+div.right_panel.djime .uniForm .inlineLabels select {
+  width: 65%;
+}
+
+div.right_panel.djime .uniForm .inlineLabels textarea {
+  width: 65%;
+  height: 5em;
 }

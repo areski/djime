@@ -215,6 +215,7 @@ def timetrack(request, group_slug=None, template_name="djime/timetrack.html", br
     if request.method == 'GET':
         form = TimeSliceBaseForm(request.user)
     elif request.method == 'POST':
+        post = request.POST
         form = TimeSliceBaseForm(request.user, request.POST)
         if form.is_valid():
             active_slices = TimeSlice.objects.filter(user=request.user,
@@ -232,6 +233,9 @@ def timetrack(request, group_slug=None, template_name="djime/timetrack.html", br
                 note=cd['note'],
             )
             new_slice.save()
+            if request.POST.has_key('destination'):
+                project = Project.objects.get(pk=cd['project'])
+                return HttpResponseRedirect(reverse(request.POST['destination'], kwargs={'group_slug': project.slug }))
 
     return render_to_response(template_name, {
         'timestrack_timeslice_form': form
