@@ -313,3 +313,11 @@ def project_json(request, project_id):
                                                     'id': task.id,
                                                     'summary': task.summary}
     return HttpResponse(json)
+
+@login_required()
+def ajax_user(request, project_id):
+    users = User.objects.exclude(project=project_id)
+    holder = []
+    for user in users:
+        holder.append(user.username)
+    return HttpResponse(json.dumps(holder))

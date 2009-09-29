@@ -10,6 +10,7 @@ urlpatterns = patterns('djime.views',
     url(r'^timetrack/$', 'timetrack', name='djime_timetrack'),
     url(r'^json/project/(?P<project_id>\d+)$', 'project_json', name='djime_project_json'),
     url(r'^ajax/task/(?P<task_id>\d+)/(?P<action>(start|stop|get_json))/$', 'task_action', name='djime_task_action'),
+    url(r'^ajax/user/project/(?P<project_id>\d+)/$', 'ajax_user', name='djime_ajax_user'),
 )
 
 urlpatterns += patterns('djime.statistics.views', (r'^statistics/', include('djime.statistics.urls')))
