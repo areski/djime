@@ -69,7 +69,10 @@ $(document).ready(function () {
 	      min: djime.flot_data.min * 0.99997,
 	      max: djime.flot_data.max * 1.00003
 	    },
-	    yaxis: { mode: "time" }
+	    yaxis: {
+	      mode: "time",
+	      min: 0
+	    }
 	  });
     $("input#stat-prev").click(function() {
       if (djime.flot_data.current_value > 1) {
