@@ -2,9 +2,10 @@ Djime - A Django-based time tracking tool
 =========================================
 
 ** Update - 30th September 2009 **
+
 After seeing the [Pinax][] project evolve, we have spent some time working
 on integrating [Djime][] with [Pinax][] something which can be used as an
-intranet. We have codenamed the [Pinax][] [Djime][] combo Pine. Our own focus
+intranet. We have codenamed the [Pinax][] - [Djime][] combo Pine. Our own focus
 is to use Pine rather than using [Djime][] as a stand alone web app. The
 result of this re factor of [Djime][] is that we now have two examples, a
 basic project and Pine. Since our focus with [Djime][] has been the move the
