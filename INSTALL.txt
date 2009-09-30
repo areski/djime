@@ -1,0 +1,21 @@
+Pine example (Mac OS X):
+To install Pine, is no much more than installing Pinax. After installing Pinax
+(we use the 0.7 release with a few bugfixes that should be merged into Pinax
+soon) you should get a virtual environment with all the Pinax requirements in
+it. All you then need to do, is to activate the virtualenv and move to the
+pine folder. Then all that is needed to get your local django server up and
+running is to do the following commands:
+
+    $ python manage.pu syncdb
+    $ python manage.py runserver
+
+note that you may want to change the database settings and use a different
+database backend. The default is sqlite3.
+
+
+
+
+
+Basic project example:
+Currently broken, do not try to use yet. Instead use an older version of wait
+for an update, where this examples shortcommings has been fixed.
