@@ -64,6 +64,7 @@ def statistics(request, method=None, year=None, method_value=0, group_slug=None,
     elif method == 'month':
         month = int(method_value)
         if year:
+            year = int(year)
             headline = '%s - %s' % (datetime(2000, month, 1).strftime('%B'), year)
         elif month:
             year = today.year
