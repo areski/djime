@@ -10,7 +10,7 @@ $(document).ready(function () {
       $("#id_task").html(data);
     });
   });
-  $("tbody td.track span").click(function () {
+  $("tbody td.track > span").click(function () {
     task_id = $(this).attr('class').match(/^\d+/)[0]
     djime.timer = $(this);
 	  if ($(this).parents("td").hasClass('timer-added')) {
@@ -47,7 +47,7 @@ $(document).ready(function () {
 	});
 	// Add active timeclock if task is in the table.
 	if (djime.task_statusbar_id) {
-	  djime.timer = $("tbody td.track span." + djime.task_statusbar_id).timeclock({since: djime.current_time})
+	  djime.timer = $("tbody td.track > span." + djime.task_statusbar_id).timeclock({since: djime.current_time})
 	    .parents("td").addClass('timer-added').end()
 	    .parents("tr").addClass('timer-added').end();
 	}
