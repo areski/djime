@@ -34,7 +34,7 @@ $(document).ready(function () {
 	    $(this).parents("td").addClass('timer-added').end()
 	      .parents("tr").addClass('timer-added').end()
 	      .timeclock();
-	    $("#task-timer-sidebar-button").timeclock('destroy');
+	    $("#task-timer-sidebar-button").timeclock('destroy').timeclock();
 	    $.post('/time/ajax/task/' + task_id + '/start/');
 	    $.getJSON('/time/ajax/task/' + task_id + '/get_json/', function(data) {
 	      $("#djime-statusbar").find("p.total-time > span").text(data.task_time).end()
