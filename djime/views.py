@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 
+from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.template import RequestContext
@@ -9,6 +10,8 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext as _
 
+from pinax.utils.importlib import import_module
+
 from djime.models import TimeSlice
 from djime.util import timesheet_timeslice_handler
 from djime.forms import TimeSliceSheetForm, TimesheetWeekForm
@@ -16,7 +19,10 @@ from djime.forms import TimesheetMonthForm, TimesheetQuarterForm
 from djime.forms import TimesheetYearForm, TimesheetDateForm
 from djime.forms import TimeSliceBaseForm
 from tasks.models import Task
+from tasks.filters import TaskFilter
 from projects.models import Project
+
+workflow = import_module(getattr(settings, "TASKS_WORKFLOW_MODULE", "tasks.workflow"))
 
 try:
     import json
@@ -329,3 +335,61 @@ def ajax_user(request, project_id):
     for user in users:
         holder.append(user.username)
     return HttpResponse(json.dumps(holder))
+
+@login_required()
+def tasks(request, group_slug=None, template_name="tasks/task_list.html", bridge=None):
+
+    if bridge:
+        try:
+            group = bridge.get_group(group_slug)
+        except ObjectDoesNotExist:
+            raise Http404
+    else:
+        group = None
+
+    if not request.user.is_authenticated():
+        is_member = False
+    else:
+        if group:
+            is_member = group.user_is_member(request.user)
+        else:
+            is_member = True
+
+    group_by = request.GET.get("group_by")
+
+    if group:
+        tasks = group.content_objects(Task)
+        group_base = bridge.group_base_template()
+    else:
+        projects = Project.objects.filter(member_users=request.user)
+        tasks = Task.objects.filter(object_id__in=[project.id for project in projects])
+        group_base = None
+
+    tasks = tasks.select_related("assignee")
+
+    # default filtering
+    state_keys = dict(workflow.STATE_CHOICES).keys()
+    default_states = set(state_keys).difference(
+        # don't show these states
+        set(["2", "3"])
+    )
+
+    filter_data = {"state": list(default_states)}
+    filter_data.update(request.GET)
+
+    task_filter = TaskFilter(filter_data, queryset=tasks)
+
+    group_by_querydict = request.GET.copy()
+    group_by_querydict.pop("group_by", None)
+    group_by_querystring = group_by_querydict.urlencode()
+
+    return render_to_response(template_name, {
+        "group": group,
+        "group_by": group_by,
+        "gbqs": group_by_querystring,
+        "is_member": is_member,
+        "group_base": group_base,
+        "task_filter": task_filter,
+        "tasks": task_filter.qs,
+        "querystring": request.GET.urlencode(),
+    }, context_instance=RequestContext(request))

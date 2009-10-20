@@ -34,6 +34,7 @@ urlpatterns = patterns('',
     (r'^tagging_utils/', include('tagging_utils.urls')),
     (r'^attachments/', include('attachments.urls')),
     (r'^projects/', include('projects.urls')),
+    url(r'^tasks/$', 'djime.views.tasks', name='djime_task_list'),
     (r'^tasks/', include('tasks.urls')),
     (r'^time/', include('djime.urls')),
     
