@@ -294,10 +294,14 @@ def task_action(request, task_id, action):
         return HttpResponse('Your timeslice for task "%(summary)s", begintime %(begin)s has been stopped at %(end)s' % {'summary': time_slice.task.summary, 'begin': time_slice.begin, 'end': end_time})
 
     elif action == 'get_json':
+        if task.group:
+            project_name = tasl.group.name
+        else:
+            project_name = ''
         data = {'active': task.is_active(),
                 'task_time' : task.display_time(),
                 'task_summary' : task.summary,
-                'project': task.group.name}
+                'project': project_name}
         return HttpResponse(json.dumps(data))
 
     else:
