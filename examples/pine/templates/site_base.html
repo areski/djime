@@ -26,7 +26,7 @@
         <ul class="tabs">{% spaceless %}
             <li id="tab_time"><a href="{% url djime_index %}">{%trans "Time" %}</a></li>
             <li id="tab_projects"><a href="{% url project_list %}">{% trans "Projects" %}</a></li>
-            <li id="tab_projects"><a href="{% url djime_task_list %}">{% trans "Tasks" %}</a></li>
+            <li id="tab_tasks"><a href="{% url djime_task_list %}">{% trans "Tasks" %}</a></li>
             <li id="tab_profile"><a href="{% url profile_detail user %}">{% trans "Profile" %}</a></li>
             <li id="tab_notices"><a href="{% url notification_notices %}">{% trans "Notices" %}{% if notice_unseen_count %} ({{ notice_unseen_count }}){% endif %}</a></li>
         {% endspaceless %}</ul>
