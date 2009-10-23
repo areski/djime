@@ -296,7 +296,7 @@ def task_action(request, task_id, action):
 
     elif action == 'get_json':
         if task.group:
-            project_name = tasl.group.name
+            project_name = task.group.name
         else:
             project_name = ''
         data = {'active': task.is_active(),
@@ -318,7 +318,7 @@ def project_json(request, project_id):
     if request.GET.get('get') == 'all':
         json += '<option value="0">%s</option>' % _('All Tasks')
     for task in tasks:
-         json += '<option value="%(id)s">%(summary)s</option>' % {
+        json += '<option value="%(id)s">%(summary)s</option>' % {
                                                     'id': task.id,
                                                     'summary': task.summary}
     return HttpResponse(json)
