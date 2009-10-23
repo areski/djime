@@ -9,7 +9,7 @@ $(document).ready(function () {
     $.get('/time/json/project/' + $("#id_project").val(), get, function(data) {
       $("#id_task").html(data);
     });
-  });
+  }).trigger("change");
   $("tbody td.track > span").click(function () {
     task_id = $(this).attr('class').match(/^\d+/)[0]
     djime.timer = $(this);

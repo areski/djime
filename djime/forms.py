@@ -15,12 +15,14 @@ class TimeSliceBaseForm(forms.Form):
         super(TimeSliceBaseForm, self).__init__(*args, **kwargs)
         project_choices = []
         task_choices = []
+        projects = []
         for project in Project.objects.filter(member_users=user).order_by(
                                                                     'name'):
             project_choices.append((project.id, project.name))
+            projects.append(project.id)
         self.fields['project'].choices = project_choices
         if project_choices:
-            tasks = Task.objects.filter(object_id=project_choices[0][0])
+            tasks = Task.objects.filter(object_id__in=projects)
             for task in tasks:
                 task_choices.append((task.id, task.summary))
         self.fields['task'].choices = task_choices
