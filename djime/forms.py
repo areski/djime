@@ -16,13 +16,13 @@ class TimeSliceBaseForm(forms.Form):
         project_choices = []
         task_choices = []
         projects = []
-        for project in Project.objects.filter(member_users=user).order_by(
-                                                                    'name'):
+        for project in Project.objects.filter(member_users=user).order_by('name'):
             project_choices.append((project.id, project.name))
             projects.append(project.id)
         self.fields['project'].choices = project_choices
         if project_choices:
-            tasks = Task.objects.filter(object_id__in=projects)
+            # Only want active tasks (see tasks.workflow.py)
+            tasks = Task.objects.filter(object_id__in=projects, state__in=[1,4,5,6,7,8])
             for task in tasks:
                 task_choices.append((task.id, task.summary))
         self.fields['task'].choices = task_choices

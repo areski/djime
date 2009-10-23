@@ -25,7 +25,8 @@ except ImportError:
     from django.utils import simplejson as json
 
 def my_tasks(request, group_slug=None, template_name="djime/my_tasks.html", bridge=None):
-    task_list = request.user.assigned_tasks.all()
+    # Only want active tasks (see tasks.workflow.py)
+    task_list = request.user.assigned_tasks.filter(state__in=[1,4,5,6,7,8])
 
     return render_to_response(template_name, {
         'task_list': task_list,
@@ -313,7 +314,7 @@ def project_json(request, project_id):
     if int(project_id) == 0:
         tasks = []
     else:
-        tasks = Task.objects.filter(object_id=project_id).order_by('summary')
+        tasks = Task.objects.filter(object_id=project_id, state__in=[1,4,5,6,7,8]).order_by('summary')
     json = ''
     if request.GET.get('get') == 'all':
         json += '<option value="0">%s</option>' % _('All Tasks')
