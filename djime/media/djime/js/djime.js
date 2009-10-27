@@ -21,7 +21,7 @@ $(document).ready(function () {
 	    $("#task-timer-sidebar-button").timeclock('destroy');
 	    $.post('/time/ajax/task/' + task_id + '/stop/');
 	    $.getJSON('/time/ajax/task/' + task_id + '/get_json/', function(data) {
-	      $("#djime-statusbar").find("p.total-time  > span").text(data.task_time).end()
+	      $("#djime-statusbar").find("p.total-time > span").text(data.task_time).end()
 	        .find("p.task > span").text(data.task_summary).end()
 	        .find("p.project > span").text(data.project);
 	    });
