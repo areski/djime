@@ -22,7 +22,7 @@ class TimeSliceBaseForm(forms.Form):
         self.fields['project'].choices = project_choices
         if project_choices:
             # Only want active tasks (see tasks.workflow.py)
-            tasks = Task.objects.filter(object_id__in=projects, state__in=[1,4,5,6,7,8])
+            tasks = Task.objects.filter(object_id__in=projects, state__in=['1', '4', '5', '6', '7', '8'])
             for task in tasks:
                 task_choices.append((task.id, task.summary))
         self.fields['task'].choices = task_choices
