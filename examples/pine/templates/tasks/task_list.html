@@ -107,7 +107,7 @@
                     <td colspan="2"></td>
                 </tr></tbody>
                 <tbody class="task_group" id="group_{{ forloop.counter }}">
-                    {% for item in tagtasks %}
+                    {% for item in tagtasks reversed %}
                         <tr class="task_{{ item.get_state_display }} {% cycle odd,even %} {{ item.id }}">
                             <td>{{ item.id }}</td>
                             <td><a href="{% groupurl task_detail group id=item.id %}">{{ item.summary }}</a></td>
@@ -149,7 +149,7 @@
                     <td colspan="2"></td>
                 </tr></tbody>
                 <tbody class="task_group" id="group_{{ forloop.counter }}">
-                    {% for task in section.list %}
+                    {% for task in section.list reversed %}
                         <tr class="task_{{ task.get_state_display }} {% cycle odd,even %}">
                             <td>{{ task.id }}</td>
                             <td><a href="{% groupurl task_detail group id=task.id %}">{{ task.summary }}</a></td>
