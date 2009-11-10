@@ -4,10 +4,12 @@
 body.profile #tab_profile a,
 body.projects #tab_projects a,
 body.notices #tab_notices a,
-body.time #tab_time a
+body.time #tab_time a,
+body.tasks #tab_tasks a
 {
     color: #000; /* selected tab text colour */
 }
+body.tasks #tab_tasks,
 body.profile #tab_profile,
 body.projects #tab_projects,
 body.notices #tab_notices,
