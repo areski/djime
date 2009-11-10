@@ -7,6 +7,7 @@
 {% load tasks_tags %}
 {% load tagging_tags %}
 {% load group_tags %}
+{% load task_tags %}
 
 {#}{% block head_title %}Tasks for {{ project.name }}{% endblock %}#}
 {% block head_title %}Tasks{% endblock %}
@@ -122,7 +123,7 @@
                             </td>
                             <td>{% task_tags item group %}</td>
                             <td>{{ item.status }}</td>
-                            <td>{{ task.display_time }}</td>
+                            <td>{% get_users_time item user %}</td>
                             <td class="track"><span class="{{ item.id }}">{% trans "Click" %}</span></td>
                         </tr>
                     {% endfor %}
@@ -166,7 +167,7 @@
                             </td>
                             <td>{% task_tags task group %}</td>
                             <td>{{ task.status }}</td>
-                            <td>{{ task.display_time }}</td>
+                            <td>{% get_users_time task user %}</td>
                             <td class="track"><span class="{{ task.id }}">{% trans "Click" %}</span></td>
                         </tr>
                     {% endfor %}
