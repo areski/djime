@@ -60,6 +60,10 @@ table.my-tasks tr.timer-added span.hasTimeClock.tock span.sep-hours {
   float: left;
 }
 
+#djime-statusbar .timetracker {
+  display: none;
+}
+
 #task-timer-sidebar-button {
   width: 49%;
   float: left;
@@ -119,6 +123,22 @@ table.djime.task_list tr.timer-added {
 
 table.djime.task_list tr.timer-added span.hasTimeClock.tock span.sep-hours {
   color: #B4FFE5;
+}
+
+fieldset.inlineLabels {
+  border: none;
+}
+
+body.tasks form {
+  margin: 10px 0;
+}
+
+body.tasks fieldset .ctrlHolder{
+  border-top: 1px solid #DFDFDF;
+}
+
+body.tasks .form_block {
+  margin-top: 10px;
 }
 
 /** Tweaks for Projects app generated pages **/

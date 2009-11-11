@@ -39,3 +39,11 @@ class Task(MetaObject):
                 seconds += tslice.duration
 
         return format_seconds(seconds)
+
+    def display_user_time(self, user):
+        """ Display the amount of time on this task for selected user. """
+        seconds = 0
+        for tslice in self.timeslices.filter(user=user):
+            if tslice.duration:
+                seconds += tslice.duration
+        return format_seconds(seconds)
