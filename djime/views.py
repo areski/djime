@@ -357,8 +357,6 @@ def tasks(request, group_slug=None, template_name="tasks/task_list.html", bridge
         else:
             is_member = True
 
-    group_by = request.GET.get("group_by")
-
     if group:
         tasks = group.content_objects(Task)
         group_base = bridge.group_base_template()
@@ -381,14 +379,8 @@ def tasks(request, group_slug=None, template_name="tasks/task_list.html", bridge
 
     task_filter = TaskFilter(filter_data, queryset=tasks)
 
-    group_by_querydict = request.GET.copy()
-    group_by_querydict.pop("group_by", None)
-    group_by_querystring = group_by_querydict.urlencode()
-
     return render_to_response(template_name, {
         "group": group,
-        "group_by": group_by,
-        "gbqs": group_by_querystring,
         "is_member": is_member,
         "group_base": group_base,
         "task_filter": task_filter,
