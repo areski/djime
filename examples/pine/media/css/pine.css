@@ -1,0 +1,21 @@
+/* SITE-SPECIFIC STYLING */
+
+table.djime td.track span {
+  background-image: url(../images/clock.png);
+  height: 30px;
+  width: 30px;
+  display: block;
+  text-indent: -9999px;
+  cursor: pointer;
+}
+
+table.djime td.track.timer-added span {
+  background-image: none;
+  text-indent: 0;
+  width: auto;
+  display: inline;
+}
+
+div#body {
+  width: 960px;
+}
