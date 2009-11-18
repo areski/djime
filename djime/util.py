@@ -57,7 +57,10 @@ def flot_timeslices(timeslices, start, end):
         vdict[start] = 0
         start += timedelta(days=1)
     for tslice in timeslices:
-        vdict[tslice.begin.date()] += tslice.duration
+        # Can timeslice doesn't have a duration (still is active) we can't
+        # add it to the total.
+        if tslice.duration:
+            vdict[tslice.begin.date()] += tslice.duration
     vlist = []
     keys = vdict.keys()
     keys.sort()
